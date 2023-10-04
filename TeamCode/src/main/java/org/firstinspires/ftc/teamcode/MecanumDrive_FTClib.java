@@ -1,16 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
-
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.subsystems.RobotHardware;
 
 @TeleOp(name = "MecanumDrive_FTClib")
 public class MecanumDrive_FTClib extends LinearOpMode {
@@ -18,7 +13,10 @@ public class MecanumDrive_FTClib extends LinearOpMode {
     private Motor frontRight, backRight, frontLeft, backLeft;
     private MecanumDrive mecanum;
     private IMU imu;
-    private IMU.Parameters imuParameters;
+    // ***Adjust the orientation parameters to match your robot***
+    private IMU.Parameters imuParameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+            RevHubOrientationOnRobot.LogoFacingDirection.UP,
+            RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
 
     @Override
     public void runOpMode() {
@@ -33,12 +31,9 @@ public class MecanumDrive_FTClib extends LinearOpMode {
 
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class,"imu");
-        // ***Adjust the orientation parameters to match your robot***
-        imuParameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(imuParameters);
+
 
         waitForStart();
 
