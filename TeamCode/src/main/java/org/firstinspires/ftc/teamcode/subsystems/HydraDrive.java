@@ -1,14 +1,19 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.MotorControlAlgorithm;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
 
 public class HydraDrive {
+    protected boolean mGyroAssist = true;
     protected final DcMotorEx mMotDrFrLt;
     protected final DcMotorEx mMotDrFrRt;
     protected final DcMotorEx mMotDrBkLt;
@@ -22,6 +27,7 @@ public class HydraDrive {
     protected final double cCountsPerWheelRevolution = 537.6;
     protected final double cCountsPerInch = cCountsPerWheelRevolution / cWheelCircumference;
     protected final HydraOpMode mOp;
+    protected IMU imu;
     protected final double cRampDownStartPercentage = 0.9;
     protected final double cRampLowPower = 0.3;
     protected final double cRampUpRate = 0.05;
@@ -29,9 +35,10 @@ public class HydraDrive {
     protected final double cDriveBoosted = 1;
     protected final double cDriveNormal = 0.9;
     protected final double cDriveSlow = 0.5;
-    protected int mRampDownStart;
+    protected double mRampDownStart;
     protected double mCurrentDrivePower;
     protected double mCurrentDriveMaxPower;
+    protected double mCurrentDriveHeading;
     protected final boolean cResetEncodersBetweenDrives = true;
     public HydraDrive(HydraOpMode op) {
         mOp = op;
@@ -73,6 +80,14 @@ public class HydraDrive {
         mMotDrBkLt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mMotDrFrRt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mMotDrBkRt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Initialization Routines
+        // Initialize the IMU with non-default settings. To use this block,
+        // plug one of the "new IMU.Parameters" blocks into the parameters socket.
+        // Create a Parameters object for use with an IMU in a REV Robotics Control Hub or
+        // Expansion Hub, specifying the hub's orientation on the robot via the direction that
+        // the REV Robotics logo is facing and the direction that the USB ports are facing.
+        imu = mOp.mHardwareMap.get(IMU.class, "imu");
+        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
     }
 
     /**
@@ -82,11 +97,11 @@ public class HydraDrive {
      * @param inStrafe the distance to strafe left or right
      * @param inRotate the amount to rotate in either direction
      */
-    public void Start(int inDrive, int inStrafe, int inRotate) {
-        int frontLeftCurrent = 0;
-        int frontRightCurrent = 0;
-        int backLeftCurrent = 0;
-        int backRightCurrent = 0;
+    public void Start(double inDrive, double inStrafe, double inRotate, double headingDegrees) {
+        double frontLeftCurrent = 0;
+        double frontRightCurrent = 0;
+        double backLeftCurrent = 0;
+        double backRightCurrent = 0;
         SetAllMotorPower(0);
         if (cResetEncodersBetweenDrives) {
             // Clean up the last drive to prepare for the next one
@@ -99,21 +114,23 @@ public class HydraDrive {
             backRightCurrent = mMotDrBkRt.getCurrentPosition();
         }
         // Front left target position
-        int frontLeftTarget = frontLeftCurrent + (int)((inDrive + inStrafe + inRotate) * cCountsPerInch);
-        mMotDrFrLt.setTargetPosition(frontLeftTarget);
+        double frontLeftTarget = frontLeftCurrent + ((inDrive + inStrafe + inRotate) * cCountsPerInch);
+        mMotDrFrLt.setTargetPosition((int)frontLeftTarget);
         // Rear left target position
-        int rearLeftTarget = backLeftCurrent + (int)((inDrive - inStrafe + inRotate) * cCountsPerInch);
-        mMotDrBkLt.setTargetPosition(rearLeftTarget);
+        double rearLeftTarget = backLeftCurrent + ((inDrive - inStrafe + inRotate) * cCountsPerInch);
+        mMotDrBkLt.setTargetPosition((int)rearLeftTarget);
         // Front right target position
-        int frontRightTarget = frontRightCurrent + (int)((inDrive - inStrafe - inRotate) * cCountsPerInch);
-        mMotDrFrRt.setTargetPosition(frontRightTarget);
+        double frontRightTarget = frontRightCurrent + ((inDrive - inStrafe - inRotate) * cCountsPerInch);
+        mMotDrFrRt.setTargetPosition((int)frontRightTarget);
         // Rear right target position
-        int rearRightTarget = backRightCurrent + (int)((inDrive + inStrafe - inRotate) * cCountsPerInch);
-        mMotDrBkRt.setTargetPosition(rearRightTarget);
+        double rearRightTarget = backRightCurrent + ((inDrive + inStrafe - inRotate) * cCountsPerInch);
+        mMotDrBkRt.setTargetPosition((int)rearRightTarget);
+        // Keep the desired heading for the end of the drive
+        mCurrentDriveHeading = headingDegrees;
         // Get the total drive so we can calculate when to ramp the power down
-        int totalDrive = Math.abs(frontLeftTarget) + Math.abs(rearLeftTarget) + Math.abs(frontRightTarget) + Math.abs(rearRightTarget);
+        double totalDrive = Math.abs(frontLeftTarget) + Math.abs(rearLeftTarget) + Math.abs(frontRightTarget) + Math.abs(rearRightTarget);
         // Start ramping down when the error is under this value
-        mRampDownStart = (int)((1 - cRampDownStartPercentage) * totalDrive);
+        mRampDownStart = ((1 - cRampDownStartPercentage) * totalDrive);
         // Start at this power
         mCurrentDrivePower = cRampLowPower;
         // Ramp up to this power
@@ -135,22 +152,22 @@ public class HydraDrive {
     public boolean Busy() {
         boolean ret = false;
         // Get the target position for each motor
-        int FLmotTarget = mMotDrFrLt.getTargetPosition();
-        int FRmotTarget = mMotDrFrRt.getTargetPosition();
-        int BLmotTarget = mMotDrBkLt.getTargetPosition();
-        int BRmotTarget = mMotDrBkRt.getTargetPosition();
+        double FLmotTarget = mMotDrFrLt.getTargetPosition();
+        double FRmotTarget = mMotDrFrRt.getTargetPosition();
+        double BLmotTarget = mMotDrBkLt.getTargetPosition();
+        double BRmotTarget = mMotDrBkRt.getTargetPosition();
         // Get the current position of each motor
-        int FLmotPos = mMotDrFrLt.getCurrentPosition();
-        int FRmotPos = mMotDrFrRt.getCurrentPosition();
-        int BLmotPos = mMotDrBkLt.getCurrentPosition();
-        int BRmotPos = mMotDrBkRt.getCurrentPosition();
+        double FLmotPos = mMotDrFrLt.getCurrentPosition();
+        double FRmotPos = mMotDrFrRt.getCurrentPosition();
+        double BLmotPos = mMotDrBkLt.getCurrentPosition();
+        double BRmotPos = mMotDrBkRt.getCurrentPosition();
         // Calculate the current error for each motor
-        int errorBkLt = Math.abs(BLmotTarget) - Math.abs(BLmotPos);
-        int errorBkRt = Math.abs(BRmotTarget) - Math.abs(BRmotPos);
-        int errorFrLt = Math.abs(FLmotTarget) - Math.abs(FLmotPos);
-        int errorFrRt = Math.abs(FRmotTarget) - Math.abs(FRmotPos);
+        double errorBkLt = Math.abs(BLmotTarget) - Math.abs(BLmotPos);
+        double errorBkRt = Math.abs(BRmotTarget) - Math.abs(BRmotPos);
+        double errorFrLt = Math.abs(FLmotTarget) - Math.abs(FLmotPos);
+        double errorFrRt = Math.abs(FRmotTarget) - Math.abs(FRmotPos);
         // Total error for all motors
-        int totalError = errorBkLt + errorBkRt + errorFrLt + errorFrRt;
+        double totalError = errorBkLt + errorBkRt + errorFrLt + errorFrRt;
         // Ramp
         if (totalError < mRampDownStart) {
             // Ramp down at the end
@@ -171,6 +188,17 @@ public class HydraDrive {
             SetAllMotorPower(mCurrentDrivePower);
 
         }
+        double yawError = 0;
+        if (mGyroAssist) {
+            // Track the error against our desired heading
+            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+            yawError = Math.abs(orientation.getYaw(AngleUnit.DEGREES) - mCurrentDriveHeading);
+            if (orientation.getYaw(AngleUnit.DEGREES) == 0 &&
+                    orientation.getPitch(AngleUnit.DEGREES) == 0 &&
+                    orientation.getRoll(AngleUnit.DEGREES) == 0) {
+                mGyroAssist = false;
+            }
+        }
         if (mOp.mDriveLogger != null) {
             mOp.mDriveLogger.blposition.set(BLmotPos);
             mOp.mDriveLogger.bltarget.set(BLmotTarget);
@@ -186,13 +214,25 @@ public class HydraDrive {
                 mOp.mDriveLogger.battVoltage.set(battvolt.getVoltage());
                 break;
             }
+            mOp.mDriveLogger.yawError.set(yawError);
             mOp.mDriveLogger.writeLine();
         }
         // if any motor is still active, we are still busy
         if (mMotDrBkLt.isBusy() || mMotDrBkRt.isBusy() || mMotDrFrLt.isBusy() || mMotDrFrRt.isBusy()) {
             ret = true;
         }
+        else if (mGyroAssist) {
+            if (yawError > 2) {
+                // 20 "inches" seems to be about 90 degrees
+                double rotation = yawError * 20 / 90;
+                Start(0, 0, rotation, mCurrentDriveHeading);
+            }
+            else {
+                ret = true;
+            }
+        }
         mOp.mTelemetry.addData("Driving", ret);
+        mOp.mTelemetry.addData("Yaw error (deg)", yawError);
         return ret;
     }
 
