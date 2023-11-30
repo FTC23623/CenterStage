@@ -88,6 +88,7 @@ public class HydraDrive {
         // the REV Robotics logo is facing and the direction that the USB ports are facing.
         imu = mOp.mHardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
+        imu.resetYaw();
     }
 
     /**
@@ -189,10 +190,10 @@ public class HydraDrive {
 
         }
         double yawError = 0;
+        YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
         if (mGyroAssist) {
             // Track the error against our desired heading
-            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-            yawError = Math.abs(orientation.getYaw(AngleUnit.DEGREES) - mCurrentDriveHeading);
+            yawError = orientation.getYaw(AngleUnit.DEGREES) - mCurrentDriveHeading;
             if (orientation.getYaw(AngleUnit.DEGREES) == 0 &&
                     orientation.getPitch(AngleUnit.DEGREES) == 0 &&
                     orientation.getRoll(AngleUnit.DEGREES) == 0) {
@@ -222,17 +223,20 @@ public class HydraDrive {
             ret = true;
         }
         else if (mGyroAssist) {
-            if (yawError > 2) {
+            if (Math.abs(yawError) > 2) {
                 // 20 "inches" seems to be about 90 degrees
                 double rotation = yawError * 20 / 90;
                 Start(0, 0, rotation, mCurrentDriveHeading);
+                ret = true;
             }
             else {
-                ret = true;
+                ret = false;
             }
         }
         mOp.mTelemetry.addData("Driving", ret);
         mOp.mTelemetry.addData("Yaw error (deg)", yawError);
+        mOp.mTelemetry.addData("Yaw", orientation.getYaw(AngleUnit.DEGREES));
+        mOp.mTelemetry.addData("Heading", mCurrentDriveHeading);
         return ret;
     }
 

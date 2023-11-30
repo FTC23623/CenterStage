@@ -273,7 +273,7 @@ public class HydrAuton extends LinearOpMode {
             case 22:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    mHeading = -90 * flip;
+                    mHeading = 90 * flip;
                     Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState = 99;
                 }
@@ -289,7 +289,7 @@ public class HydrAuton extends LinearOpMode {
                 // LEFT RIGGING LEFT SPIKE
                 // RIGHT RIGGING RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    mHeading = -90 * flip;
+                    mHeading = 90 * flip;
                     Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState = 99;
                 }
@@ -359,7 +359,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
-                    mHeading = -90 * flip;
+                    mHeading = 90 * flip;
                     Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState += 1;
                 }
@@ -490,7 +490,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    mHeading = 90 * flip;
+                    mHeading = -90 * flip;
                     Drive.Start(0, 0, 20 * flip, mHeading);
                     autonState += 1;
                 }
