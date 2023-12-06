@@ -21,7 +21,7 @@ import java.util.List;
 
 //@Autonomous(name = "HydrAutonJava", preselectTeleOp = "HyDrive")
 public class HydrAuton extends LinearOpMode {
-    protected final int mWaitTimeAtRigging = 13000;
+    protected int mWaitTimeAtRigging = 13000;
     protected HydraArm Arm;
     protected HydraDrive Drive;
     protected HydraPixelPalace PixelPalace;
@@ -72,7 +72,7 @@ public class HydrAuton extends LinearOpMode {
         mOp.mTelemetry.update();
         // manual caching mode
         for (LynxModule mod : hubs) {
-            mod.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            mod.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
         while (!ObjDet.CameraIsReady()) {
             if (isStopRequested()) {
@@ -105,11 +105,6 @@ public class HydrAuton extends LinearOpMode {
         }
         // Find the object so we can drive to it
         while (opModeIsActive()) {
-            // clear the hardware read cache
-            // we probably don't need this here, but just in case..
-            for (LynxModule mod : hubs) {
-                mod.clearBulkCache();
-            }
             // Run tensorflow to see if we can find the object
             ObjLoc = ObjDet.GetObjectLocation(setTrueForRed);
             // UNCOMMENT THIS TO HARDCODE THE OBJECT LOCATION
@@ -142,10 +137,6 @@ public class HydrAuton extends LinearOpMode {
         ObjDet.SetObjDetectEnabled(false);
         // Run the proper auton for the object location
         while (opModeIsActive()) {
-            // clear the hardware read cache
-            for (LynxModule mod : hubs) {
-                mod.clearBulkCache();
-            }
             telemetry.addData("Location", ObjLoc);
             // The auton returns true when it's done
             if (RunAuton()) {
@@ -175,10 +166,6 @@ public class HydrAuton extends LinearOpMode {
         }
         // if we had to abort, we allow the arm to return home
         while (autonAbort && opModeIsActive()) {
-            // clear the hardware read cache
-            for (LynxModule mod : hubs) {
-                mod.clearBulkCache();
-            }
             ArmToHome();
             if (autonState >= 500) {
                 break;
@@ -314,7 +301,7 @@ public class HydrAuton extends LinearOpMode {
      * @param flipWhenRed is set to true if we are running a red team auton
      * @return false iff there is a problem
      */
-    protected boolean AutonDriveToBackdropFromWing(boolean flipWhenRed) {
+    protected boolean AutonDriveToBackdropFromWing(boolean flipWhenRed, boolean parkOnly) {
         // multiply strafes and rotates by -1 based on the starting orientation
         int flip = 1;
         if (flipWhenRed) {
@@ -368,8 +355,14 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
-                    Drive.Start(73, 0, 0, mHeading);
-                    autonState += 1;
+                    if (parkOnly) {
+                        Drive.Start(86, 0, 0, mHeading);
+                        autonState = 299;
+                    }
+                    else {
+                        Drive.Start(73, 0, 0, mHeading);
+                        autonState += 1;
+                    }
                 }
                 break;
             case 214:
@@ -392,8 +385,14 @@ public class HydrAuton extends LinearOpMode {
             case 221:
                 // CENTER
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
-                    Drive.Start(90, 0, 0, mHeading);
-                    autonState += 1;
+                    if (parkOnly) {
+                        Drive.Start(103, 0, 0, mHeading);
+                        autonState = 299;
+                    }
+                    else {
+                        Drive.Start(90, 0, 0, mHeading);
+                        autonState += 1;
+                    }
                 }
                 break;
             case 222:
@@ -417,8 +416,14 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT
                 // RED RIGHT
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
-                    Drive.Start(76, 0, 0, mHeading);
-                    autonState += 1;
+                    if (parkOnly) {
+                        Drive.Start(89, 0, 0, mHeading);
+                        autonState = 299;
+                    }
+                    else {
+                        Drive.Start(76, 0, 0, mHeading);
+                        autonState += 1;
+                    }
                 }
                 break;
             case 232:
@@ -432,9 +437,12 @@ public class HydrAuton extends LinearOpMode {
                 break;
             ////////////////////////////////////////////////////////////////////////////////////////
             case 299:
-                boolean driveComplete = !Drive.Busy();
-                boolean armComplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
-                if (driveComplete && armComplete) {
+                boolean drivecomplete = !Drive.Busy();
+                boolean armcomplete = true;
+                if (!parkOnly) {
+                    armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                }
+                if (drivecomplete && armcomplete) {
                     autonState = 300;
                 }
                 break;
@@ -499,15 +507,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-16, 0, 0, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 213:
-                // BLUE LEFT SPIKE
-                // RED RIGHT SPIKE
-                if (!Drive.Busy()) {
-                    Drive.Start(0, -10 * flip, 0, mHeading);
+                    Drive.Start(-20, -10 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToBack);
                     autonState = 299;
                 }
@@ -639,22 +639,32 @@ public class HydrAuton extends LinearOpMode {
      * Drop a pixel at the current location
      * @return false iff something bad happens
      */
-    protected boolean PixelDrop() {
+    protected boolean PixelDrop(boolean secondPixel) {
         // Drop the pixel on the spike
         switch (autonState) {
             case 100:
                 // Reverse the intake
                 Intake.StartOut();
-                // Run one pixel out of the cassette
-                PixelPalace.Start(HydraPixelPalaceActions.PixelPalaceBackToFront,
-                        HydraPixelPalaceActions.PixelPalaceStop, false);
+                HydraPixelPalaceActions position2Direction = HydraPixelPalaceActions.PixelPalaceStop;
+                // if we are dropping the second pixel, we need both servos to turn
+                if (secondPixel) {
+                    position2Direction = HydraPixelPalaceActions.PixelPalaceBackToFront;
+                }
+                // Run the pixel out of the cassette
+                PixelPalace.Start(HydraPixelPalaceActions.PixelPalaceBackToFront, position2Direction,
+                        false);
                 // Start a timer since we can't easily detect whether a pixel has exited the intake
                 pixelDropTimer.reset();
                 autonState += 1;
                 break;
             case 101:
+                int waitTime = cPixelDropRunTimeMs;
+                // Give the second pixel more time to get out
+                if (secondPixel) {
+                    waitTime *= 2;
+                }
                 // Wait for our hardcoded timer to elapse
-                if (pixelDropTimer.milliseconds() >= cPixelDropRunTimeMs) {
+                if (pixelDropTimer.milliseconds() >= waitTime) {
                     // Stop the intake and cassette
                     Intake.Stop();
                     PixelPalace.Stop();

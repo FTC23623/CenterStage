@@ -12,7 +12,7 @@ public class HydrAuton_Backstage extends HydrAuton {
         else if (autonState < 200) {
             // These 100 level states handle dropping the pixel on the spike
             // this is the same for all autons
-            if (!PixelDrop()) {
+            if (!PixelDrop(false)) {
                 BadState();
                 return true;
             }
@@ -51,15 +51,15 @@ public class HydrAuton_Backstage extends HydrAuton {
                                 dist = 34;
                                 break;
                             case ObjLocBlueLeftSpike:
-                                dist = 26;
+                                dist = 24;
                                 break;
                             case ObjLocBlueCenterSpike:
                             case ObjLocRedCenterSpike:
-                                dist = 28;
+                                dist = 30;
                                 break;
                             case ObjLocRedRightSpike:
                             default:
-                                dist = 26;
+                                dist = 24;
                                 break;
                             case ObjLocBlueRightSpike:
                                 dist = 34;

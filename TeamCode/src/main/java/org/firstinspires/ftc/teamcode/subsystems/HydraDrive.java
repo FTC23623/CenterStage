@@ -163,10 +163,10 @@ public class HydraDrive {
         double BLmotPos = mMotDrBkLt.getCurrentPosition();
         double BRmotPos = mMotDrBkRt.getCurrentPosition();
         // Calculate the current error for each motor
-        double errorBkLt = Math.abs(BLmotTarget) - Math.abs(BLmotPos);
-        double errorBkRt = Math.abs(BRmotTarget) - Math.abs(BRmotPos);
-        double errorFrLt = Math.abs(FLmotTarget) - Math.abs(FLmotPos);
-        double errorFrRt = Math.abs(FRmotTarget) - Math.abs(FRmotPos);
+        double errorBkLt = Math.abs(BLmotTarget - BLmotPos);
+        double errorBkRt = Math.abs(BRmotTarget - BRmotPos);
+        double errorFrLt = Math.abs(FLmotTarget - FLmotPos);
+        double errorFrRt = Math.abs(FRmotTarget - FRmotPos);
         // Total error for all motors
         double totalError = errorBkLt + errorBkRt + errorFrLt + errorFrRt;
         // Ramp
