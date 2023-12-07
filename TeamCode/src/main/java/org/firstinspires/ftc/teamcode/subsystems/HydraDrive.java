@@ -1,15 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.MotorControlAlgorithm;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
 
 public class HydraDrive {
@@ -18,6 +13,7 @@ public class HydraDrive {
     protected final DcMotorEx mMotDrFrRt;
     protected final DcMotorEx mMotDrBkLt;
     protected final DcMotorEx mMotDrBkRt;
+    protected final HydraImu mImu;
     protected final String cfgFrLt = "MotDrFrLt";
     protected final String cfgFrRt = "MotDrFrRt";
     protected final String cfgBkLt = "MotDrBkLt";
@@ -27,7 +23,6 @@ public class HydraDrive {
     protected final double cCountsPerWheelRevolution = 537.6;
     protected final double cCountsPerInch = cCountsPerWheelRevolution / cWheelCircumference;
     protected final HydraOpMode mOp;
-    protected IMU imu;
     protected final double cRampDownStartPercentage = 0.9;
     protected final double cRampLowPower = 0.3;
     protected final double cRampUpRate = 0.05;
@@ -80,15 +75,8 @@ public class HydraDrive {
         mMotDrBkLt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mMotDrFrRt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mMotDrBkRt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        // Initialization Routines
-        // Initialize the IMU with non-default settings. To use this block,
-        // plug one of the "new IMU.Parameters" blocks into the parameters socket.
-        // Create a Parameters object for use with an IMU in a REV Robotics Control Hub or
-        // Expansion Hub, specifying the hub's orientation on the robot via the direction that
-        // the REV Robotics logo is facing and the direction that the USB ports are facing.
-        imu = mOp.mHardwareMap.get(IMU.class, "imu");
-        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
-        imu.resetYaw();
+        // create an IMU
+        mImu = new HydraImu_navx(mOp);
     }
 
     /**
@@ -190,14 +178,15 @@ public class HydraDrive {
 
         }
         double yawError = 0;
-        YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+        // the best thing to do is nothing if we have some bad code path
+        double yaw = mCurrentDriveHeading;;
+        boolean useImu = false;
         if (mGyroAssist) {
-            // Track the error against our desired heading
-            yawError = orientation.getYaw(AngleUnit.DEGREES) - mCurrentDriveHeading;
-            if (orientation.getYaw(AngleUnit.DEGREES) == 0 &&
-                    orientation.getPitch(AngleUnit.DEGREES) == 0 &&
-                    orientation.getRoll(AngleUnit.DEGREES) == 0) {
-                mGyroAssist = false;
+            if (!mImu.Calibrating()) {
+                useImu = true;
+                mImu.GetYaw();
+                // Track the error against our desired heading
+                yawError = yaw - mCurrentDriveHeading;
             }
         }
         if (mOp.mDriveLogger != null) {
@@ -222,7 +211,7 @@ public class HydraDrive {
         if (mMotDrBkLt.isBusy() || mMotDrBkRt.isBusy() || mMotDrFrLt.isBusy() || mMotDrFrRt.isBusy()) {
             ret = true;
         }
-        else if (mGyroAssist) {
+        else if (mGyroAssist && useImu) {
             if (Math.abs(yawError) > 2) {
                 // 20 "inches" seems to be about 90 degrees
                 double rotation = yawError * 20 / 90;
@@ -235,9 +224,17 @@ public class HydraDrive {
         }
         mOp.mTelemetry.addData("Driving", ret);
         mOp.mTelemetry.addData("Yaw error (deg)", yawError);
-        mOp.mTelemetry.addData("Yaw", orientation.getYaw(AngleUnit.DEGREES));
+        mOp.mTelemetry.addData("Yaw", yaw);
         mOp.mTelemetry.addData("Heading", mCurrentDriveHeading);
         return ret;
+    }
+
+    public boolean ImuCalibrating() {
+        return mImu.Calibrating();
+    }
+
+    public void CloseImu() {
+        mImu.Close();
     }
 
     /**

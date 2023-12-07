@@ -74,8 +74,8 @@ public class HydrAuton extends LinearOpMode {
         for (LynxModule mod : hubs) {
             mod.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-        while (!ObjDet.CameraIsReady()) {
-            if (isStopRequested()) {
+        while (!ObjDet.CameraIsReady() || Drive.ImuCalibrating()) {
+            if (isStopRequested() || !opModeIsActive()) {
                 break;
             }
         }
@@ -175,6 +175,8 @@ public class HydrAuton extends LinearOpMode {
             // Share the CPU.
             sleep(20);
         }
+        // turn off the gyro
+        Drive.CloseImu();
         // wait for the opmode to time out
         while (opModeIsActive() && opModeTimer.milliseconds() < 30000) {
             sleep(20);
