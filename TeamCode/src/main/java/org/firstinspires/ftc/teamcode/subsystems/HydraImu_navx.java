@@ -10,7 +10,8 @@ public class HydraImu_navx implements HydraImu {
     protected AHRS mNavx;
     private final byte NAVX_DEVICE_UPDATE_RATE_HZ = 50;
     public HydraImu_navx(HydraOpMode opMode) {
-        mNavx = AHRS.getInstance(opMode.mHardwareMap.get(NavxMicroNavigationSensor.class, "navx"), AHRS.DeviceDataType.kProcessedData, NAVX_DEVICE_UPDATE_RATE_HZ);
+        mNavx = AHRS.getInstance(opMode.mHardwareMap.get(NavxMicroNavigationSensor.class,
+                "navx"), AHRS.DeviceDataType.kProcessedData, NAVX_DEVICE_UPDATE_RATE_HZ);
     }
 
     public void ResetYaw() {

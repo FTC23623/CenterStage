@@ -182,11 +182,16 @@ public class HydraDrive {
         double yaw = mCurrentDriveHeading;;
         boolean useImu = false;
         if (mGyroAssist) {
-            if (!mImu.Calibrating()) {
+            if (!ImuCalibrating()) {
                 useImu = true;
                 mImu.GetYaw();
                 // Track the error against our desired heading
                 yawError = yaw - mCurrentDriveHeading;
+                mOp.mTelemetry.addData("Yaw", yaw);
+                mOp.mTelemetry.addData("YawError", yawError);
+            }
+            else {
+                mOp.mTelemetry.addData("Yaw", "cal");
             }
         }
         if (mOp.mDriveLogger != null) {
@@ -223,8 +228,6 @@ public class HydraDrive {
             }
         }
         mOp.mTelemetry.addData("Driving", ret);
-        mOp.mTelemetry.addData("Yaw error (deg)", yawError);
-        mOp.mTelemetry.addData("Yaw", yaw);
         mOp.mTelemetry.addData("Heading", mCurrentDriveHeading);
         return ret;
     }
