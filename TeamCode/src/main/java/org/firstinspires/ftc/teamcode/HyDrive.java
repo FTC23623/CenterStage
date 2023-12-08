@@ -199,7 +199,7 @@ public class HyDrive extends LinearOpMode {
       // System processes
       ProcessArm();
       ProcessDrive(armPositionState);
-      cassetteFull = ProcessCassette();
+      cassetteFull = ProcessCassette(armPositionState);
       ProcessIntake(cassetteFull);
       ProcessDrone();
       // Update telemetry once for all processes
@@ -475,7 +475,7 @@ public class HyDrive extends LinearOpMode {
   /**
    * Describe this function...
    */
-  private boolean ProcessCassette() {
+  private boolean ProcessCassette(int inArmPosition) {
     boolean pixelInPos1;
     boolean pixelInPos2;
     double pixelPos1ServoPos;
@@ -501,7 +501,7 @@ public class HyDrive extends LinearOpMode {
       // User wants to run back to front
       pixelPos1ServoPos = cCasBackToFront;
       pixelPos2ServoPos = cCasBackToFront;
-    } else if (cAllowFrontScoreFromCassette && gamepad2.right_bumper) {
+    } else if (cAllowFrontScoreFromCassette && inArmPosition == 4 && gamepad2.right_bumper) {
       // User wants to score at front of robot
       pixelPos1ServoPos = cCasFrontToBack;
       pixelPos2ServoPos = cCasFrontToBack;
