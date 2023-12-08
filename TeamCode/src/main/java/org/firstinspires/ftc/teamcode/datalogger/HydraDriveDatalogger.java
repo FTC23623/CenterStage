@@ -36,6 +36,7 @@ public class HydraDriveDatalogger
     public Datalogger.GenericField drMotPwr = new Datalogger.GenericField("Dr Pwr");
     public Datalogger.GenericField battVoltage = new Datalogger.GenericField("Batt");
     public Datalogger.GenericField state = new Datalogger.GenericField("State");
+    public Datalogger.GenericField yawError = new Datalogger.GenericField("Yaw Error");
 
     public HydraDriveDatalogger(String name)
     {
@@ -65,7 +66,8 @@ public class HydraDriveDatalogger
                         bltarget,
                         blposition,
                         brtarget,
-                        brposition
+                        brposition,
+                        yawError
                 )
                 .build();
     }
