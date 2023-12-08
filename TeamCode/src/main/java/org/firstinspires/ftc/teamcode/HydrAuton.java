@@ -3,11 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.teamcode.datalogger.HydraObjDetDatalogger;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
 import org.firstinspires.ftc.teamcode.subsystems.HydraArm;
@@ -25,7 +22,6 @@ import java.util.List;
 //@Autonomous(name = "HydrAutonJava", preselectTeleOp = "HyDrive")
 public class HydrAuton extends LinearOpMode {
     protected int mWaitTimeAtRigging = 15000;
-    protected IMU imu;
     protected HydraArm Arm;
     protected HydraDrive Drive;
     protected HydraPixelPalace PixelPalace;
@@ -41,10 +37,11 @@ public class HydrAuton extends LinearOpMode {
     protected boolean setTrueForRiggingOnRight = false;
     protected HydraOpMode mOp;
     protected MultipleTelemetry dashboard;
-    protected final int cMaxObjectSearchTimeMs = 2000;
+    protected final int cMaxObjectSearchTimeMs = 200;
     protected final int cPixelDropRunTimeMs = 2000;
     protected final int cPixelFrontScoreRunTimeMs = 2000;
     protected final int cAutonAbortTimeMs = 27000;
+    protected double mHeading = 0;
     protected HydraDriveDatalogger mDriveLogger;
     protected HydraObjDetDatalogger mObjLogger;
 
@@ -64,14 +61,6 @@ public class HydrAuton extends LinearOpMode {
         mObjLogger = new HydraObjDetDatalogger("obj-log-" + mOpModeName);
         mOp = new HydraOpMode(telemetry, hardwareMap, mDriveLogger, mObjLogger);
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
-        // Initialization Routines
-        // Initialize the IMU with non-default settings. To use this block,
-        // plug one of the "new IMU.Parameters" blocks into the parameters socket.
-        // Create a Parameters object for use with an IMU in a REV Robotics Control Hub or
-        // Expansion Hub, specifying the hub's orientation on the robot via the direction that
-        // the REV Robotics logo is facing and the direction that the USB ports are facing.
-        imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
         Arm = new HydraArm(mOp);
         Drive = new HydraDrive(mOp);
         PixelPalace = new HydraPixelPalace(mOp);
@@ -85,8 +74,8 @@ public class HydrAuton extends LinearOpMode {
         for (LynxModule mod : hubs) {
             mod.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-        while (!ObjDet.CameraIsReady()) {
-            if (isStopRequested()) {
+        while (!ObjDet.CameraIsReady() || !Drive.ImuReady()) {
+            if (isStopRequested() || !opModeIsActive()) {
                 break;
             }
         }
@@ -186,6 +175,8 @@ public class HydrAuton extends LinearOpMode {
             // Share the CPU.
             sleep(20);
         }
+        // turn off the gyro
+        Drive.CloseImu();
         // wait for the opmode to time out
         while (opModeIsActive() && opModeTimer.milliseconds() < 30000) {
             sleep(20);
@@ -252,26 +243,27 @@ public class HydrAuton extends LinearOpMode {
             case 10:
                 // LEFT RIGGING RIGHT SPIKE
                 // RIGHT RIGGING LEFT SPIKE
-                Drive.Start(16, 13 * flip, 0);
+                Drive.Start(16, 13 * flip, 0, mHeading);
                 autonState = 99;
                 break;
             ////////////////////////////////////////////////////////////////////////////////////////
             case 20:
                 // CENTER SPIKE
-                Drive.Start(28, 20 * flip, 0);
+                Drive.Start(28, 20 * flip, 0, mHeading);
                 autonState += 1;
                 break;
             case 21:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(8, 0, 0);
+                    Drive.Start(8, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;
             case 22:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 0, -20 * flip);
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState = 99;
                 }
                 break;
@@ -279,14 +271,15 @@ public class HydrAuton extends LinearOpMode {
             case 30:
                 // LEFT RIGGING LEFT SPIKE
                 // RIGHT RIGGING RIGHT SPIKE
-                Drive.Start(30, 3 * flip, 0);
+                Drive.Start(30, 3 * flip, 0, mHeading);
                 autonState += 1;
                 break;
             case 31:
                 // LEFT RIGGING LEFT SPIKE
                 // RIGHT RIGGING RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 0, -20 * flip);
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState = 99;
                 }
                 break;
@@ -340,14 +333,14 @@ public class HydrAuton extends LinearOpMode {
             case 210:
                 // BLUE RIGHT
                 // RED LEFT
-                Drive.Start(0, -12 * flip, 0);
+                Drive.Start(0, -12 * flip, 0, mHeading);
                 autonState += 1;
                 break;
             case 211:
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
-                    Drive.Start(33, 0, 0);
+                    Drive.Start(33, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -355,7 +348,8 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 0, -20 * flip);
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -364,11 +358,11 @@ public class HydrAuton extends LinearOpMode {
                 // RED LEFT
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
                     if (parkOnly) {
-                        Drive.Start(86, 0, 0);
+                        Drive.Start(86, 0, 0, mHeading);
                         autonState = 299;
                     }
                     else {
-                        Drive.Start(73, 0, 0);
+                        Drive.Start(73, 0, 0, mHeading);
                         autonState += 1;
                     }
                 }
@@ -377,7 +371,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
-                    Drive.Start(0, -24 * flip, 0);
+                    Drive.Start(0, -24 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
@@ -386,7 +380,7 @@ public class HydrAuton extends LinearOpMode {
             case 220:
                 // CENTER
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 18 * flip, 0);
+                    Drive.Start(0, 18 * flip, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -394,11 +388,11 @@ public class HydrAuton extends LinearOpMode {
                 // CENTER
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
                     if (parkOnly) {
-                        Drive.Start(103, 0, 0);
+                        Drive.Start(103, 0, 0, mHeading);
                         autonState = 299;
                     }
                     else {
-                        Drive.Start(90, 0, 0);
+                        Drive.Start(90, 0, 0, mHeading);
                         autonState += 1;
                     }
                 }
@@ -406,7 +400,7 @@ public class HydrAuton extends LinearOpMode {
             case 222:
                 // CENTER
                 if (!Drive.Busy()) {
-                    Drive.Start(0, -27 * flip, 0);
+                    Drive.Start(0, -27 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
@@ -416,7 +410,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT
                 // RED RIGHT
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 22 * flip, 0);
+                    Drive.Start(0, 22 * flip, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -425,11 +419,11 @@ public class HydrAuton extends LinearOpMode {
                 // RED RIGHT
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
                     if (parkOnly) {
-                        Drive.Start(89, 0, 0);
+                        Drive.Start(89, 0, 0, mHeading);
                         autonState = 299;
                     }
                     else {
-                        Drive.Start(76, 0, 0);
+                        Drive.Start(76, 0, 0, mHeading);
                         autonState += 1;
                     }
                 }
@@ -438,7 +432,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT
                 // RED RIGHT
                 if (!Drive.Busy()) {
-                    Drive.Start(0, -29 * flip, 0);
+                    Drive.Start(0, -29 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
@@ -498,7 +492,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-4, 0, 0);
+                    Drive.Start(-4, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -506,7 +500,8 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 0, 20 * flip);
+                    mHeading = -90 * flip;
+                    Drive.Start(0, 0, 20 * flip, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -514,7 +509,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-20, -10 * flip, 0);
+                    Drive.Start(-20, -10 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToBack);
                     autonState = 299;
                 }
@@ -523,14 +518,14 @@ public class HydrAuton extends LinearOpMode {
             case 220:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 10 * flip, 0);
+                    Drive.Start(0, 10 * flip, 0, mHeading);
                     autonState += 1;
                 }
                 break;
             case 221:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-14, 0, 0);
+                    Drive.Start(-14, 0, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToBack);
                     autonState = 299;
                 }
@@ -540,7 +535,7 @@ public class HydrAuton extends LinearOpMode {
                 // BLUE RIGHT SPIKE
                 // RED LEFT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-28, 0, 0);
+                    Drive.Start(-28, 0, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToBack);
                     autonState = 299;
                 }
@@ -573,7 +568,7 @@ public class HydrAuton extends LinearOpMode {
                 break;
             case 301:
                 if (!Drive.Busy()) {
-                    Drive.Start(-6, 0, 0);
+                    Drive.Start(-6, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -588,7 +583,7 @@ public class HydrAuton extends LinearOpMode {
             case 303:
                 if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
                     PixelPalace.Stop();
-                    Drive.Start(4, 0, 0);
+                    Drive.Start(4, 0, 0, mHeading);
                     autonState = 400;
                 }
                 break;
@@ -611,7 +606,7 @@ public class HydrAuton extends LinearOpMode {
                 break;
             case 301:
                 if (!Drive.Busy()) {
-                    Drive.Start(8, 0, 0);
+                    Drive.Start(8, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -626,7 +621,7 @@ public class HydrAuton extends LinearOpMode {
             case 303:
                 if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
                     PixelPalace.Stop();
-                    Drive.Start(-6, 0, 0);
+                    Drive.Start(-6, 0, 0, mHeading);
                     autonState = 399;
                 }
                 break;
