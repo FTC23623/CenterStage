@@ -14,11 +14,13 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
+import org.firstinspires.ftc.teamcode.subsystems.HydraImu;
+import org.firstinspires.ftc.teamcode.subsystems.HydraImu_navx;
 
-@TeleOp(name = "HyDriveJ")
+@TeleOp(name = "HyDrive")
 public class HyDrive extends LinearOpMode {
-
-  private IMU imu;
+  private HydraImu mImu;
   private DcMotor MotLwrArm;
   private DcMotor MotUprArm;
   private Servo SrvPxlPos1;
@@ -37,7 +39,6 @@ public class HyDrive extends LinearOpMode {
   private LED LED1;
   private DistanceSensor SenColPxlPos1_DistanceSensor;
   private DistanceSensor SenColPxlPos2_DistanceSensor;
-
   int armPositionState;
   boolean allowManualArmControl;
   int triangleButtonPress;
@@ -91,7 +92,6 @@ public class HyDrive extends LinearOpMode {
     boolean cassetteFull;
     int lastDistanceToBackdrop;
 
-    imu = hardwareMap.get(IMU.class, "imu");
     MotLwrArm = hardwareMap.get(DcMotor.class, "MotLwrArm");
     MotUprArm = hardwareMap.get(DcMotor.class, "MotUprArm");
     SrvPxlPos1 = hardwareMap.get(Servo.class, "SrvPxlPos1");
@@ -155,7 +155,7 @@ public class HyDrive extends LinearOpMode {
     cCasFrontToBack = 1;
     cCasBackToFront = 0;
     cCasStop = 0.5;
-    cAllowFrontScoreFromCassette = false;
+    cAllowFrontScoreFromCassette = true;
     // Distance to detect pixels in the cassette (cm)
     cPixelPos1Dist = 1;
     cPixelPos2Dist = 10;
@@ -165,7 +165,7 @@ public class HyDrive extends LinearOpMode {
     cIntakeStop = 0;
     // Rumble when close to the backdrop
     cDistanceToBackdropForRumble = 9;
-    cFieldCentric = false;
+    cFieldCentric = true;
     // Servo constants for the drone
     cDroneServoStop = 0.5;
     cDroneServoLaunch = 0.1;
@@ -182,12 +182,18 @@ public class HyDrive extends LinearOpMode {
     // Create a Parameters object for use with an IMU in a REV Robotics Control Hub or
     // Expansion Hub, specifying the hub's orientation on the robot via the direction that
     // the REV Robotics logo is facing and the direction that the USB ports are facing.
-    imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
+    HydraOpMode opMode = new HydraOpMode(telemetry, hardwareMap, null, null);
+    mImu = new HydraImu_navx(opMode);
     InitArm();
     InitCassette();
     InitDrive();
     InitIntake();
     InitDrone();
+    while (!mImu.Connected() || mImu.Calibrating()) {
+      if (isStopRequested() || !opModeIsActive()) {
+        break;
+      }
+    }
     waitForStart();
     while (opModeIsActive()) {
       // System processes
@@ -345,11 +351,21 @@ public class HyDrive extends LinearOpMode {
     drive = gamepad1.left_stick_y;
     strafe = -gamepad1.left_stick_x;
     rotate = -gamepad1.right_stick_x;
-    imuMeas = imu.getRobotYawPitchRollAngles();
-    heading = imuMeas.getYaw(AngleUnit.DEGREES);
-    rotX = strafe * Math.cos(-heading / 180 * Math.PI) - drive * Math.sin(-heading / 180 * Math.PI);
-    rotY = strafe * Math.sin(-heading / 180 * Math.PI) + drive * Math.cos(-heading / 180 * Math.PI);
+    double yaw = 0;
+    if (!mImu.Connected()) {
+      telemetry.addData("Yaw", "disconnected");
+    }
+    else if (mImu.Calibrating()) {
+      telemetry.addData("Yaw", "cal");
+    }
+    else {
+      yaw = mImu.GetYaw();
+      telemetry.addData("Yaw", yaw);
+    }
+    rotX = strafe * Math.cos(-yaw / 180 * Math.PI) - drive * Math.sin(-yaw / 180 * Math.PI);
+    rotY = strafe * Math.sin(-yaw / 180 * Math.PI) + drive * Math.cos(-yaw / 180 * Math.PI);
     if (gamepad1.circle && cFieldCentric) {
+      mImu.ResetYaw();
     }
     // Set max drive power based on driver input
     if (gamepad1.left_trigger > cTrgBtnThresh || inArmPosition > 2) {
@@ -410,7 +426,6 @@ public class HyDrive extends LinearOpMode {
     telemetry.addData("RightFront", frontRightPower);
     telemetry.addData("LeftRear", rearLeftPower);
     telemetry.addData("RightRear", rearRightPower);
-    telemetry.addLine(imuMeas.toString());
   }
 
   /**

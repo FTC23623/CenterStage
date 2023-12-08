@@ -182,16 +182,19 @@ public class HydraDrive {
         double yaw = mCurrentDriveHeading;;
         boolean useImu = false;
         if (mGyroAssist) {
-            if (!ImuCalibrating()) {
+            if (!ImuConnected()) {
+                mOp.mTelemetry.addData("Yaw", "disconnected");
+            }
+            else if (ImuCalibrating()) {
+                mOp.mTelemetry.addData("Yaw", "cal");
+            }
+            else {
                 useImu = true;
-                mImu.GetYaw();
+                yaw = mImu.GetYaw();
                 // Track the error against our desired heading
                 yawError = yaw - mCurrentDriveHeading;
                 mOp.mTelemetry.addData("Yaw", yaw);
                 mOp.mTelemetry.addData("YawError", yawError);
-            }
-            else {
-                mOp.mTelemetry.addData("Yaw", "cal");
             }
         }
         if (mOp.mDriveLogger != null) {
@@ -216,7 +219,7 @@ public class HydraDrive {
         if (mMotDrBkLt.isBusy() || mMotDrBkRt.isBusy() || mMotDrFrLt.isBusy() || mMotDrFrRt.isBusy()) {
             ret = true;
         }
-        else if (mGyroAssist && useImu) {
+        else if (useImu) {
             if (Math.abs(yawError) > 2) {
                 // 20 "inches" seems to be about 90 degrees
                 double rotation = yawError * 20 / 90;
@@ -232,8 +235,16 @@ public class HydraDrive {
         return ret;
     }
 
-    public boolean ImuCalibrating() {
+    protected boolean ImuCalibrating() {
         return mImu.Calibrating();
+    }
+
+    protected boolean ImuConnected() {
+        return mImu.Connected();
+    }
+
+    public boolean ImuReady() {
+        return ImuConnected() && !ImuCalibrating();
     }
 
     public void CloseImu() {

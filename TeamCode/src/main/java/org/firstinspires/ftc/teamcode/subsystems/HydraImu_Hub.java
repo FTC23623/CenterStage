@@ -33,6 +33,10 @@ public class HydraImu_Hub {
         return false;
     }
 
+    public boolean Connected() {
+        return true;
+    }
+
     public void Close() {
     }
 }

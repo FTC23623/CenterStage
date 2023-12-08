@@ -6,7 +6,6 @@ import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
 
 public class HydraImu_navx implements HydraImu {
-    protected boolean mImuCalibrating = true;
     protected AHRS mNavx;
     private final byte NAVX_DEVICE_UPDATE_RATE_HZ = 50;
     public HydraImu_navx(HydraOpMode opMode) {
@@ -14,19 +13,19 @@ public class HydraImu_navx implements HydraImu {
                 "navx"), AHRS.DeviceDataType.kProcessedData, NAVX_DEVICE_UPDATE_RATE_HZ);
     }
 
+    public boolean Connected() {
+        return mNavx.isConnected();
+    }
     public void ResetYaw() {
         mNavx.zeroYaw();
     }
 
     public double GetYaw() {
-        return mNavx.getYaw();
+        return mNavx.getYaw() * -1;
     }
 
     public boolean Calibrating() {
-        if (mImuCalibrating && !mNavx.isCalibrating()) {
-            mImuCalibrating = false;
-        }
-        return mImuCalibrating;
+        return mNavx.isCalibrating();
     }
 
     public void Close() {
