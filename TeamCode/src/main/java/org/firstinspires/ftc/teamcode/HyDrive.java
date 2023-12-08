@@ -150,7 +150,7 @@ public class HyDrive extends LinearOpMode {
     cUpperArmPos6Hang = 225;
     cLowerArmPositions = JavaUtil.createListWith(cLowerArmPos0Home, cLowerArmPos1LiftBox, cLowerArmPos2LiftArm, cLowerArmPos3BackScore, cLowerArmPos4FrontScore, cLowerArmPos5Hang, cLowerArmPos6Hang);
     cUpperArmPositions = JavaUtil.createListWith(cUpperArmPos0Home, cUpperArmPos1LiftBox, cUpperArmPos2LiftArm, cUpperArmPos3BackScore, cUpperArmPos4FrontScore, cUpperArmPos5Hang, cUpperArmPos6Hang);
-    cArmPositionNames = JavaUtil.makeListFromText("Home,Lift Box,Lift Arm,Back Score, Front Score,Hang,HangEnd", ",");
+    cArmPositionNames = JavaUtil.createListWith("Home", "Lift Box", "Lift Arm", "Back Score", "Front Score", "Hang", "HangEnd");
     // Servo speeds for the cassette
     cCasFrontToBack = 1;
     cCasBackToFront = 0;
@@ -314,7 +314,7 @@ public class HyDrive extends LinearOpMode {
         nextArmPosition = ArmControlSM();
         SetLwrArmPos(((Integer) JavaUtil.inListGet(cLowerArmPositions, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).intValue());
         SetUprArmPos(((Integer) JavaUtil.inListGet(cUpperArmPositions, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).intValue());
-        telemetry.addData("ArmPos", ((Double) JavaUtil.inListGet(cArmPositionNames, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).doubleValue());
+        telemetry.addData("ArmPos", JavaUtil.inListGet(cArmPositionNames, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false));
       }
     }
     telemetry.addData("LrArm", MotLwrArm.getCurrentPosition());
