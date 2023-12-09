@@ -6,4 +6,5 @@ public interface HydraImu {
     public void Close();
     public void ResetYaw();
     public double GetYaw();
+    public void SetYawOffset(double offset);
 }

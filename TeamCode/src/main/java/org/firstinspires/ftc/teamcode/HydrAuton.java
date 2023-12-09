@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.datalogger.HydraObjDetDatalogger;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
+import org.firstinspires.ftc.teamcode.objects.OpmodeHeading;
 import org.firstinspires.ftc.teamcode.subsystems.HydraArm;
 import org.firstinspires.ftc.teamcode.subsystems.HydraDrive;
 import org.firstinspires.ftc.teamcode.subsystems.HydraIntake;
@@ -181,6 +182,7 @@ public class HydrAuton extends LinearOpMode {
         while (opModeIsActive() && opModeTimer.milliseconds() < 30000) {
             sleep(20);
         }
+        OpmodeHeading.SetOffset(Drive.GetYaw());
     }
 
     /**
