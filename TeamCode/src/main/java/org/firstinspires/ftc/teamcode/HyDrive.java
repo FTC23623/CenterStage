@@ -332,25 +332,19 @@ public class HyDrive extends LinearOpMode {
    * Describe this function...
    */
   private void ProcessDrive(int inArmPosition) {
-    float drive;
-    float strafe;
-    float rotate;
-    YawPitchRollAngles imuMeas;
-    double heading;
+    double drive;
+    double strafe;
+    double rotate;
     double rotX;
     double rotY;
     double driveMaxPower;
-    float sum;
-    float max;
+    double sum;
+    double max;
     double frontLeftPower;
     double rearLeftPower;
     double frontRightPower;
     double rearRightPower;
-
-    // Get driver controller input
-    drive = gamepad1.left_stick_y;
-    strafe = -gamepad1.left_stick_x;
-    rotate = -gamepad1.right_stick_x;
+    // get the yaw input from the gyro
     double yaw = 0;
     if (!mImu.Connected()) {
       telemetry.addData("Yaw", "disconnected");
@@ -361,6 +355,32 @@ public class HyDrive extends LinearOpMode {
     else {
       yaw = mImu.GetYaw();
       telemetry.addData("Yaw", yaw);
+    }
+    // Get driver controller input
+    drive = gamepad1.left_stick_y;
+    strafe = -gamepad1.left_stick_x;
+    if (gamepad1.cross && cFieldCentric) {
+      // snap to the nearest 90 deg
+      double snapHeading = yaw;
+      if (yaw >= -180 && yaw <= -135) {
+        snapHeading = -180;
+      }
+      else if (yaw > -135 && yaw <= -45) {
+        snapHeading = -90;
+      }
+      else if (yaw > -45 && yaw <= 45) {
+        snapHeading = 0;
+      }
+      else if (yaw > 45 && yaw <= 135) {
+        snapHeading = 90;
+      }
+      else if (yaw > 135 && yaw <= 180) {
+        snapHeading = 180;
+      }
+      rotate = -Math.sin((yaw - snapHeading) * Math.PI / 180);
+    }
+    else {
+      rotate = -gamepad1.right_stick_x;
     }
     rotX = strafe * Math.cos(-yaw / 180 * Math.PI) - drive * Math.sin(-yaw / 180 * Math.PI);
     rotY = strafe * Math.sin(-yaw / 180 * Math.PI) + drive * Math.cos(-yaw / 180 * Math.PI);
