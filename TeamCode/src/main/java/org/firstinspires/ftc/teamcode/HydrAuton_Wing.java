@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.types.HydraArmMovements;
+
 public class HydrAuton_Wing extends HydrAuton {
     public boolean RunAuton() {
         if (autonState < 100) {
@@ -51,5 +53,163 @@ public class HydrAuton_Wing extends HydrAuton {
             ObjDet.FindAprilTag(ObjLoc);
         }
         return false;
+    }
+    
+    /**
+     * Drive the robot to the backdrop from the wing based on which spike we delivered at [ObjLoc]
+     * This function is used for both wing or audience side auton op modes
+     * @param flipWhenRed is set to true if we are running a red team auton
+     * @return false iff there is a problem
+     */
+    protected boolean AutonDriveToBackdropFromWing(boolean flipWhenRed, boolean parkOnly) {
+        // multiply strafes and rotates by -1 based on the starting orientation
+        int flip = 1;
+        if (flipWhenRed) {
+            flip = -1;
+        }
+        switch (autonState) {
+            case 200:
+                switch (ObjLoc) {
+                    // jump to the correct state based on the detected location
+                    case ObjLocBlueLeftSpike:
+                    case ObjLocRedRightSpike:
+                        autonState = 230;
+                        break;
+                    case ObjLocBlueRightSpike:
+                    case ObjLocRedLeftSpike:
+                        autonState = 210;
+                        break;
+                    case ObjLocBlueCenterSpike:
+                    case ObjLocRedCenterSpike:
+                        autonState = 220;
+                        break;
+                    default:
+                        return false;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 210:
+                // BLUE RIGHT
+                // RED LEFT
+                Drive.Start(0, -12 * flip, 0, mHeading);
+                autonState += 1;
+                break;
+            case 211:
+                // BLUE RIGHT
+                // RED LEFT
+                if (!Drive.Busy()) {
+                    Drive.Start(33, 0, 0, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 212:
+                // BLUE RIGHT
+                // RED LEFT
+                if (!Drive.Busy()) {
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -20 * flip, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 213:
+                // BLUE RIGHT
+                // RED LEFT
+                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
+                    if (parkOnly) {
+                        Drive.Start(86, 0, 0, mHeading);
+                        autonState = 299;
+                    }
+                    else {
+                        Drive.Start(73, 0, 0, mHeading);
+                        autonState += 1;
+                    }
+                }
+                break;
+            case 214:
+                // BLUE RIGHT
+                // RED LEFT
+                if (!Drive.Busy()) {
+                    Drive.Start(0, -24 * flip, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                    autonState = 299;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 220:
+                // CENTER
+                if (!Drive.Busy()) {
+                    Drive.Start(0, 18 * flip, 0, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 221:
+                // CENTER
+                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
+                    if (parkOnly) {
+                        Drive.Start(103, 0, 0, mHeading);
+                        autonState = 299;
+                    }
+                    else {
+                        Drive.Start(90, 0, 0, mHeading);
+                        autonState += 1;
+                    }
+                }
+                break;
+            case 222:
+                // CENTER
+                if (!Drive.Busy()) {
+                    Drive.Start(0, -27 * flip, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                    autonState = 299;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 230:
+                // BLUE LEFT
+                // RED RIGHT
+                if (!Drive.Busy()) {
+                    Drive.Start(0, 22 * flip, 0, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 231:
+                // BLUE LEFT
+                // RED RIGHT
+                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
+                    if (parkOnly) {
+                        Drive.Start(89, 0, 0, mHeading);
+                        autonState = 299;
+                    }
+                    else {
+                        Drive.Start(76, 0, 0, mHeading);
+                        autonState += 1;
+                    }
+                }
+                break;
+            case 232:
+                // BLUE LEFT
+                // RED RIGHT
+                if (!Drive.Busy()) {
+                    Drive.Start(0, -29 * flip, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                    autonState = 299;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 299:
+                boolean drivecomplete = !Drive.Busy();
+                boolean armcomplete = true;
+                if (!parkOnly) {
+                    armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                }
+                if (drivecomplete && armcomplete) {
+                    autonState = 300;
+                }
+                break;
+            default:
+                // something bad happened
+                return false;
+        }
+        return true;
     }
 }

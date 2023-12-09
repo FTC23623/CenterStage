@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.teamcode.HydrAuton;
 
-public class HydrAuton_WingParkOnly extends HydrAuton {
+public class HydrAuton_WingParkOnly extends HydrAuton_Wing {
     protected boolean secondDrop = false;
     public boolean RunAuton() {
         if (autonState < 100) {

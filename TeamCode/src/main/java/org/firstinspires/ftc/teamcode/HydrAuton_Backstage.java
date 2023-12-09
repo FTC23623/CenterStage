@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.types.HydraArmMovements;
+
 public class HydrAuton_Backstage extends HydrAuton {
     public boolean RunAuton() {
         if (autonState < 100) {
@@ -94,5 +96,105 @@ public class HydrAuton_Backstage extends HydrAuton {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Drive the robot to the backdrop from the backstage based on which spike we delivered at [ObjLoc]
+     * This function is used for both backstage side auton op modes
+     * @param flipForRed is set to true if we are running a red team auton
+     * @return false iff there is a problem
+     */
+    protected boolean AutonDriveToBackdropFromBackstage(boolean flipForRed) {
+        // multiply strafes and rotates by -1 based on the starting orientation
+        int flip = 1;
+        if (flipForRed) {
+            flip = -1;
+        }
+        switch (autonState) {
+            case 200:
+                // jump to the correct state based on which spike we are at
+                switch (ObjLoc) {
+                    case ObjLocBlueLeftSpike:
+                    case ObjLocRedRightSpike:
+                        autonState = 210;
+                        break;
+                    case ObjLocBlueCenterSpike:
+                    case ObjLocRedCenterSpike:
+                        autonState = 220;
+                        break;
+                    case ObjLocBlueRightSpike:
+                    case ObjLocRedLeftSpike:
+                        autonState = 230;
+                        break;
+                    default:
+                        return false;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 210:
+                // BLUE LEFT SPIKE
+                // RED RIGHT SPIKE
+                if (!Drive.Busy()) {
+                    Drive.Start(-4, 0, 0, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 211:
+                // BLUE LEFT SPIKE
+                // RED RIGHT SPIKE
+                if (!Drive.Busy()) {
+                    mHeading = -90 * flip;
+                    Drive.Start(0, 0, 20 * flip, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 212:
+                // BLUE LEFT SPIKE
+                // RED RIGHT SPIKE
+                if (!Drive.Busy()) {
+                    Drive.Start(-20, -10 * flip, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                    autonState = 299;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 220:
+                // CENTER SPIKE
+                if (!Drive.Busy()) {
+                    Drive.Start(0, 10 * flip, 0, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 221:
+                // CENTER SPIKE
+                if (!Drive.Busy()) {
+                    Drive.Start(-14, 0, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                    autonState = 299;
+                }
+                break;
+            ////////////////////////////////////////////////////////////////////////////////////////
+            case 230:
+                // BLUE RIGHT SPIKE
+                // RED LEFT SPIKE
+                if (!Drive.Busy()) {
+                    Drive.Start(-28, 0, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                    autonState = 299;
+                }
+                break;
+            ///////////////////////////////////////////////////////////////////////////////////////
+            case 299:
+                boolean drivecomplete = !Drive.Busy();
+                boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                if (drivecomplete && armcomplete) {
+                    autonState = 300;
+                }
+                break;
+            default:
+                // something bad happened
+                return false;
+        }
+        return true;
     }
 }
