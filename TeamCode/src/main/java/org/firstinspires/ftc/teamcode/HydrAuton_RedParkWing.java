@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name = "HydrAuton_RedParkWingJ", preselectTeleOp = "HyDrive")
+@Autonomous(name = "RedParkWing", preselectTeleOp = "HyDrive")
 public class HydrAuton_RedParkWing extends HydrAuton_WingParkOnly{
     public HydrAuton_RedParkWing() {
         setTrueForRed = true;
