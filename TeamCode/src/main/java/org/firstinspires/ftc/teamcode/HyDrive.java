@@ -356,7 +356,7 @@ public class HyDrive extends LinearOpMode {
     }
     // Get driver controller input
     drive = gamepad1.left_stick_y;
-    strafe = -gamepad1.left_stick_x;
+    strafe = -gamepad1.left_stick_x * 1.1;
     if (gamepad1.cross && cFieldCentric) {
       // snap to the nearest 90 deg
       double snapHeading = yaw;
@@ -375,7 +375,7 @@ public class HyDrive extends LinearOpMode {
       else if (yaw > 135 && yaw <= 180) {
         snapHeading = 180;
       }
-      rotate = -Math.sin((yaw - snapHeading) * Math.PI / 180);
+      rotate = -Math.sin((yaw - snapHeading) * Math.PI / 180) * 1.1;
     }
     else {
       rotate = -gamepad1.right_stick_x;
