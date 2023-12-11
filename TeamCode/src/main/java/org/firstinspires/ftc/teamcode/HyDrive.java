@@ -274,13 +274,13 @@ public class HyDrive extends LinearOpMode {
 
     if (gamepad2.triangle) {
       if (triangleButtonPress < 3) {
-        triangleButtonPress += 1;
+        triangleButtonPress++;
       }
     } else if (triangleButtonPress == 3) {
       allowManualArmControl = !allowManualArmControl;
-      triangleButtonPress += -1;
-    } else if (triangleButtonPress != 0) {
-      triangleButtonPress += -1;
+      triangleButtonPress = 2;
+    } else if (triangleButtonPress > 0) {
+      triangleButtonPress--;
     }
     if (allowManualArmControl) {
       if (gamepad2.cross) {
@@ -318,12 +318,12 @@ public class HyDrive extends LinearOpMode {
         nextArmPosition = ArmControlSM();
         SetLwrArmPos(((Integer) JavaUtil.inListGet(cLowerArmPositions, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).intValue());
         SetUprArmPos(((Integer) JavaUtil.inListGet(cUpperArmPositions, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).intValue());
-        telemetry.addData("ArmPos", JavaUtil.inListGet(cArmPositionNames, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false));
       }
     }
     telemetry.addData("LrArm", MotLwrArm.getCurrentPosition());
     telemetry.addData("UprArm", MotUprArm.getCurrentPosition());
     telemetry.addData("Manual Arm", allowManualArmControl);
+    telemetry.addData("ArmPos", JavaUtil.inListGet(cArmPositionNames, JavaUtil.AtMode.FROM_START, ((armPositionState + 1) - 1), false));
   }
 
   /**
