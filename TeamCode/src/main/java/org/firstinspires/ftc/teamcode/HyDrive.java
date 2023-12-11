@@ -192,6 +192,7 @@ public class HyDrive extends LinearOpMode {
       }
     }
     mImu.SetYawOffset(OpmodeHeading.GetOffset());
+    telemetry.addData("Auton Yaw", OpmodeHeading.GetOffset());
     waitForStart();
     while (opModeIsActive()) {
       // System processes
