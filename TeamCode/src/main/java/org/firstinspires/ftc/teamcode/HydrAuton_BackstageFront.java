@@ -49,7 +49,7 @@ public class HydrAuton_BackstageFront extends HydrAuton {
                                 dist = 34;
                                 break;
                             case ObjLocBlueLeftSpike:
-                                dist = -24;
+                                dist = -22;
                                 break;
                             case ObjLocBlueCenterSpike:
                                 dist = -30;
@@ -59,7 +59,7 @@ public class HydrAuton_BackstageFront extends HydrAuton {
                                 break;
                             case ObjLocRedRightSpike:
                             default:
-                                dist = 24;
+                                dist = 22;
                                 break;
                             case ObjLocBlueRightSpike:
                                 dist = -34;
@@ -150,7 +150,7 @@ public class HydrAuton_BackstageFront extends HydrAuton {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(20, 10 * flip, 0, mHeading);
+                    Drive.Start(18, 8 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
@@ -177,7 +177,7 @@ public class HydrAuton_BackstageFront extends HydrAuton {
                 // BLUE RIGHT SPIKE
                 // RED LEFT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-28, 0, 0, mHeading);
+                    Drive.Start(-27, -2 * flip, 0, mHeading);
                     autonState = 231;
                 }
                 break;
@@ -194,7 +194,7 @@ public class HydrAuton_BackstageFront extends HydrAuton {
             ///////////////////////////////////////////////////////////////////////////////////////
             case 299:
                 boolean drivecomplete = !Drive.Busy();
-                boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                 if (drivecomplete && armcomplete) {
                     autonState = 300;
                 }
