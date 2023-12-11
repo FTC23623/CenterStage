@@ -284,11 +284,11 @@ public class HyDrive extends LinearOpMode {
       triangleButtonPress--;
     }
     if (allowManualArmControl) {
+      armPositionState = 0;
       if (gamepad2.cross) {
         MotLwrArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         MotUprArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         allowManualArmControl = false;
-        armPositionState = 0;
       }
       upperArmPower = gamepad2.right_stick_y;
       lowerArmPower = gamepad2.left_stick_y;
