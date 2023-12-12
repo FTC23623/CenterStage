@@ -176,13 +176,13 @@ public class HydrAuton extends LinearOpMode {
             // Share the CPU.
             sleep(20);
         }
+        OpmodeHeading.SetOffset(Drive.GetYaw());
         // turn off the gyro
         Drive.CloseImu();
         // wait for the opmode to time out
         while (opModeIsActive() && opModeTimer.milliseconds() < 30000) {
             sleep(20);
         }
-        OpmodeHeading.SetOffset(Drive.GetYaw());
     }
 
     /**
