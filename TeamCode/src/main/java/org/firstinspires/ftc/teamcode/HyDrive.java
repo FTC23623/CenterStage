@@ -193,6 +193,7 @@ public class HyDrive extends LinearOpMode {
     }
     mImu.SetYawOffset(OpmodeHeading.GetOffset());
     telemetry.addData("Auton Yaw", OpmodeHeading.GetOffset());
+    telemetry.update();
     waitForStart();
     while (opModeIsActive()) {
       // System processes
@@ -286,8 +287,12 @@ public class HyDrive extends LinearOpMode {
     if (allowManualArmControl) {
       armPositionState = 0;
       if (gamepad2.cross) {
+        MotUprArm.setPower(0);
+        MotLwrArm.setPower(0);
         MotLwrArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         MotUprArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotUprArm.setTargetPosition(0);
+        MotLwrArm.setTargetPosition(0);
         allowManualArmControl = false;
       }
       upperArmPower = gamepad2.right_stick_y;

@@ -177,7 +177,7 @@ public class HydrAuton_BackstageFront extends HydrAuton {
                 // BLUE RIGHT SPIKE
                 // RED LEFT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-27, -2 * flip, 0, mHeading);
+                    Drive.Start(-26, -2 * flip, 0, mHeading);
                     autonState = 231;
                 }
                 break;

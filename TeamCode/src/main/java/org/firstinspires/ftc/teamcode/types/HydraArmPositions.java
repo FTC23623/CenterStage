@@ -11,5 +11,7 @@ public enum HydraArmPositions {
     ArmPosition3BackScore,
     ArmPosition4FrontScore,
     ArmPosition5Hang,
-    ArmPosition6HangEnd
+    ArmPosition6HangEnd,
+    ArmPosition7FrontLift2,
+    ArmPosition8FrontFinish
 }
