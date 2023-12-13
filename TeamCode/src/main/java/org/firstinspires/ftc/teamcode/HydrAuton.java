@@ -350,7 +350,7 @@ public class HydrAuton extends LinearOpMode {
                 break;
             case 301:
                 if (!Drive.Busy()) {
-                    Drive.Start(8, 0, 0, mHeading);
+                    Drive.Start(6, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;

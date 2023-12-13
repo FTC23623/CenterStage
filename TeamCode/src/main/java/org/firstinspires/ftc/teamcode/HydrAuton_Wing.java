@@ -120,7 +120,7 @@ public class HydrAuton_Wing extends HydrAuton {
                         autonState = 299;
                     }
                     else {
-                        Drive.Start(73, 0, 0, mHeading);
+                        Drive.Start(80, 0, 0, mHeading);
                         autonState += 1;
                     }
                 }
@@ -150,7 +150,7 @@ public class HydrAuton_Wing extends HydrAuton {
                         autonState = 299;
                     }
                     else {
-                        Drive.Start(90, 0, 0, mHeading);
+                        Drive.Start(94, 0, 0, mHeading);
                         autonState += 1;
                     }
                 }
@@ -177,7 +177,7 @@ public class HydrAuton_Wing extends HydrAuton {
                 // RED RIGHT
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
                     if (parkOnly) {
-                        Drive.Start(89, 0, 0, mHeading);
+                        Drive.Start(93, 0, 0, mHeading);
                         autonState = 299;
                     }
                     else {
