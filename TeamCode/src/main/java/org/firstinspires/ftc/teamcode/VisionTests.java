@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.datalogger.HydraObjDetDatalogger;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.types.HydraObjectLocations;
 import java.util.List;
 
 @TeleOp(name = "VisionTests")
+@Disabled
 public class VisionTests extends LinearOpMode {
     HydraObjectDetect mObjDet;
     HydraOpMode mOpmode;
