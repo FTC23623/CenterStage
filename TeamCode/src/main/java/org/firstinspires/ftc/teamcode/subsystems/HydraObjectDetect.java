@@ -142,7 +142,7 @@ public class HydraObjectDetect {
     }
 
     public HydraAprilTagPose FindAprilTag(HydraObjectLocations objLocToFind) {
-        List<AprilTagDetection> aprilTagDetections = mAprilTagProcessor.getFreshDetections();
+        List<AprilTagDetection> aprilTagDetections = mAprilTagProcessor.getDetections();
         if (aprilTagDetections == null) {
             return null;
         }

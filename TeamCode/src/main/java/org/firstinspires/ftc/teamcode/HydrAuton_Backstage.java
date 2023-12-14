@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.teamcode.types.HydraArmMovements;
+import org.firstinspires.ftc.teamcode.types.HydraObjectLocations;
 
 public class HydrAuton_Backstage extends HydrAuton {
     public boolean RunAuton() {
@@ -29,9 +30,24 @@ public class HydrAuton_Backstage extends HydrAuton {
         else if (autonState < 400) {
             // These 300 level states handle scoring backwards at the backdrop
             // this is the same for two autons
-            if (!ScoreBack()) {
-                BadState();
-                autonState = 400;
+            switch (ObjLoc) {
+                case ObjLocRedLeftSpike:
+                case ObjLocRedCenterSpike:
+                case ObjLocBlueCenterSpike:
+                case ObjLocBlueRightSpike:
+                default:
+                    if (!ScoreBack()) {
+                        BadState();
+                        autonState = 400;
+                    }
+                    break;
+                case ObjLocRedRightSpike:
+                case ObjLocBlueLeftSpike:
+                    if (!ScoreFront()) {
+                        BadState();
+                        autonState = 400;
+                    }
+                    break;
             }
         }
         else if (autonState < 500) {
@@ -53,7 +69,7 @@ public class HydrAuton_Backstage extends HydrAuton {
                                 dist = 34;
                                 break;
                             case ObjLocBlueLeftSpike:
-                                dist = 24;
+                                dist = -23;
                                 break;
                             case ObjLocBlueCenterSpike:
                             case ObjLocRedCenterSpike:
@@ -61,7 +77,7 @@ public class HydrAuton_Backstage extends HydrAuton {
                                 break;
                             case ObjLocRedRightSpike:
                             default:
-                                dist = 24;
+                                dist = -23;
                                 break;
                             case ObjLocBlueRightSpike:
                                 dist = 34;
@@ -73,7 +89,14 @@ public class HydrAuton_Backstage extends HydrAuton {
                     break;
                 case 501:
                     if (!Drive.Busy()) {
-                        Drive.Start(-14, 0, 0, mHeading);
+                        double drive = -14;
+                        switch (ObjLoc) {
+                            case ObjLocBlueLeftSpike:
+                            case ObjLocRedRightSpike:
+                                drive = 14;
+                                break;
+                        }
+                        Drive.Start(drive, 0, 0, mHeading);
                         autonState += 1;
                     }
                     break;
@@ -143,8 +166,8 @@ public class HydrAuton_Backstage extends HydrAuton {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    mHeading = -90 * flip;
-                    Drive.Start(0, 0, 20 * flip, mHeading);
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -20 * flip, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -152,9 +175,9 @@ public class HydrAuton_Backstage extends HydrAuton {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-20, -10 * flip, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
-                    autonState = 299;
+                    Drive.Start(20, 9 * flip, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                    autonState = 298;
                 }
                 break;
             ////////////////////////////////////////////////////////////////////////////////////////
@@ -184,12 +207,22 @@ public class HydrAuton_Backstage extends HydrAuton {
                 }
                 break;
             ///////////////////////////////////////////////////////////////////////////////////////
-            case 299:
+            case 298: {
+                boolean drivecomplete = !Drive.Busy();
+                boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
+                if (drivecomplete && armcomplete) {
+                    autonState = 300;
+                }
+            }
+                break;
+            ///////////////////////////////////////////////////////////////////////////////////////
+            case 299: {
                 boolean drivecomplete = !Drive.Busy();
                 boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToBack);
                 if (drivecomplete && armcomplete) {
                     autonState = 300;
                 }
+            }
                 break;
             default:
                 // something bad happened

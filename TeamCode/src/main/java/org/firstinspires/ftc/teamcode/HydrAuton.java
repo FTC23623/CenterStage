@@ -364,12 +364,12 @@ public class HydrAuton extends LinearOpMode {
                 break;
             case 303:
                 if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
-                    Arm.RunAction(HydraArmMovements.ArmMoveToFrontFinishScore);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHang);
                     autonState += 1;
                 }
                 break;
             case 304:
-                if (Arm.RunAction(HydraArmMovements.ArmMoveToFrontFinishScore)) {
+                if (Arm.RunAction(HydraArmMovements.ArmMoveToHang)) {
                     PixelPalace.Stop();
                     Drive.Start(-6, 0, 0, mHeading);
                     autonState = 399;

@@ -91,18 +91,26 @@ public class HydrAuton_Wing extends HydrAuton {
             case 210:
                 // BLUE RIGHT
                 // RED LEFT
-                Drive.Start(0, -12 * flip, 0, mHeading);
+                Drive.Start(-2, 0, 0, mHeading);
                 autonState += 1;
                 break;
             case 211:
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
-                    Drive.Start(33, 0, 0, mHeading);
+                    Drive.Start(0, -12 * flip, 0, mHeading);
                     autonState += 1;
                 }
                 break;
             case 212:
+                // BLUE RIGHT
+                // RED LEFT
+                if (!Drive.Busy()) {
+                    Drive.Start(35, 0, 0, mHeading);
+                    autonState += 1;
+                }
+                break;
+            case 213:
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
@@ -111,7 +119,7 @@ public class HydrAuton_Wing extends HydrAuton {
                     autonState += 1;
                 }
                 break;
-            case 213:
+            case 214:
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
@@ -125,11 +133,11 @@ public class HydrAuton_Wing extends HydrAuton {
                     }
                 }
                 break;
-            case 214:
+            case 215:
                 // BLUE RIGHT
                 // RED LEFT
                 if (!Drive.Busy()) {
-                    Drive.Start(0, -24 * flip, 0, mHeading);
+                    Drive.Start(0, -22 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
@@ -181,7 +189,7 @@ public class HydrAuton_Wing extends HydrAuton {
                         autonState = 299;
                     }
                     else {
-                        Drive.Start(76, 0, 0, mHeading);
+                        Drive.Start(80, 0, 0, mHeading);
                         autonState += 1;
                     }
                 }
@@ -190,7 +198,7 @@ public class HydrAuton_Wing extends HydrAuton {
                 // BLUE LEFT
                 // RED RIGHT
                 if (!Drive.Busy()) {
-                    Drive.Start(0, -29 * flip, 0, mHeading);
+                    Drive.Start(0, -30 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
