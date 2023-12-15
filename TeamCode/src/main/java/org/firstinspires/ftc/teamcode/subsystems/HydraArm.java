@@ -27,19 +27,25 @@ public class HydraArm {
     protected final int cUpperArmPos3BackScore = -440;
     //
     protected final int cLowerArmPos4FrontScore = -700;
-    protected final int cUpperArmPos4FrontScore = 650;
+    protected final int cUpperArmPos4FrontScore = 750;
     //
     protected final int cLowerArmPos5Hang = -1200;
     protected final int cUpperArmPos5Hang = 850;
     //
     protected final int cLowerArmPos6Hang = -325;
     protected final int cUpperArmPos6Hang = 225;
+
+    protected final int cLowerArmPos7FrontLift2 = -450;
+    protected final int cUpperArmPos7FrontLift2 = -300;
+
+    protected final int cLowerArmPos8FrontScoreFinish = -850;
+    protected final int cUpperArmPos8FrontScoreFinish = 750;
     protected final int[] mLowerArmPositions = {cLowerArmPos0Home, cLowerArmPos1LiftBox, cLowerArmPos2LiftArm,
-            cLowerArmPos3BackScore, cLowerArmPos4FrontScore, cLowerArmPos5Hang, cLowerArmPos6Hang};
+            cLowerArmPos3BackScore, cLowerArmPos4FrontScore, cLowerArmPos5Hang, cLowerArmPos6Hang, cLowerArmPos7FrontLift2, cLowerArmPos8FrontScoreFinish};
     protected final int[] mUpperArmPositions= {cUpperArmPos0Home, cUpperArmPos1LiftBox, cUpperArmPos2LiftArm,
-            cUpperArmPos3BackScore, cUpperArmPos4FrontScore, cUpperArmPos5Hang, cUpperArmPos6Hang};
+            cUpperArmPos3BackScore, cUpperArmPos4FrontScore, cUpperArmPos5Hang, cUpperArmPos6Hang, cUpperArmPos7FrontLift2, cUpperArmPos8FrontScoreFinish};
     protected final String[] mArmPositionNames = {"Home", "Lift Box", "Lift Arm", "Back Score", "Front Score",
-            "Hang", "Hang End"};
+            "Hang", "Hang End", "Lift Arm2", "Front Score Finish"};
     protected HydraOpMode mOp;
     protected HydraArmPositions mArmPositionState;
     public HydraArm(HydraOpMode op) {
@@ -101,9 +107,13 @@ public class HydraArm {
                     case ArmPosition2LiftArm:
                         mArmPositionState = HydraArmPositions.ArmPosition1LiftBox;
                         break;
-                    case ArmPosition3BackScore:
                     case ArmPosition4FrontScore:
+                    case ArmPosition8FrontFinish:
+                        mArmPositionState = HydraArmPositions.ArmPosition7FrontLift2;
+                        break;
+                    case ArmPosition3BackScore:
                     case ArmPosition5Hang:
+                    case ArmPosition7FrontLift2:
                         mArmPositionState = HydraArmPositions.ArmPosition2LiftArm;
                         break;
                     case ArmPosition6HangEnd:
@@ -122,6 +132,8 @@ public class HydraArm {
                     case ArmPosition2LiftArm:
                     case ArmPosition4FrontScore:
                     case ArmPosition5Hang:
+                    case ArmPosition7FrontLift2:
+                    case ArmPosition8FrontFinish:
                         mArmPositionState = HydraArmPositions.ArmPosition3BackScore;
                         break;
                     case ArmPosition3BackScore:
@@ -141,8 +153,12 @@ public class HydraArm {
                         mArmPositionState = HydraArmPositions.ArmPosition2LiftArm;
                         break;
                     case ArmPosition2LiftArm:
+                        mArmPositionState = HydraArmPositions.ArmPosition7FrontLift2;
+                        break;
+                    case ArmPosition7FrontLift2:
                     case ArmPosition3BackScore:
                     case ArmPosition5Hang:
+                    case ArmPosition8FrontFinish:
                         mArmPositionState = HydraArmPositions.ArmPosition4FrontScore;
                         break;
                     case ArmPosition4FrontScore:
@@ -165,6 +181,8 @@ public class HydraArm {
                     case ArmPosition3BackScore:
                     case ArmPosition4FrontScore:
                     case ArmPosition6HangEnd:
+                    case ArmPosition7FrontLift2:
+                    case ArmPosition8FrontFinish:
                         mArmPositionState = HydraArmPositions.ArmPosition5Hang;
                         break;
                     case ArmPosition5Hang:
@@ -183,6 +201,8 @@ public class HydraArm {
                     case ArmPosition2LiftArm:
                     case ArmPosition3BackScore:
                     case ArmPosition4FrontScore:
+                    case ArmPosition7FrontLift2:
+                    case ArmPosition8FrontFinish:
                         mArmPositionState = HydraArmPositions.ArmPosition5Hang;
                         break;
                     case ArmPosition5Hang:
@@ -190,6 +210,33 @@ public class HydraArm {
                         break;
                     case ArmPosition6HangEnd:
                         actionComplete = true;
+                        break;
+                }
+                break;
+            case ArmMoveToFrontFinishScore:
+                switch (mArmPositionState) {
+                    case ArmPosition0Home:
+                        mArmPositionState = HydraArmPositions.ArmPosition1LiftBox;
+                        break;
+                    case ArmPosition1LiftBox:
+                        mArmPositionState = HydraArmPositions.ArmPosition2LiftArm;
+                        break;
+                    case ArmPosition2LiftArm:
+                        mArmPositionState = HydraArmPositions.ArmPosition7FrontLift2;
+                        break;
+                    case ArmPosition7FrontLift2:
+                    case ArmPosition3BackScore:
+                    case ArmPosition5Hang:
+                        mArmPositionState = HydraArmPositions.ArmPosition4FrontScore;
+                        break;
+                    case ArmPosition4FrontScore:
+                        mArmPositionState = HydraArmPositions.ArmPosition8FrontFinish;
+                        break;
+                    case ArmPosition8FrontFinish:
+                        actionComplete = true;
+                        break;
+                    case ArmPosition6HangEnd:
+                        mArmPositionState = HydraArmPositions.ArmPosition5Hang;
                         break;
                 }
                 break;

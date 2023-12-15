@@ -9,5 +9,6 @@ public enum HydraArmMovements {
     ArmMoveToBack,
     ArmMoveToFront,
     ArmMoveToHang,
-    ArmMoveToHangEnd
+    ArmMoveToHangEnd,
+    ArmMoveToFrontFinishScore
 }

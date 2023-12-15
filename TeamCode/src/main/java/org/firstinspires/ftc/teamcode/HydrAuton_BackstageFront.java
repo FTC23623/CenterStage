@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.teamcode.types.HydraArmMovements;
-import org.firstinspires.ftc.teamcode.types.HydraObjectLocations;
 
-public class HydrAuton_Backstage extends HydrAuton {
+public class HydrAuton_BackstageFront extends HydrAuton {
     public boolean RunAuton() {
         if (autonState < 100) {
             // These states handle driving to the correct spike
@@ -22,7 +21,7 @@ public class HydrAuton_Backstage extends HydrAuton {
         }
         else if (autonState < 300) {
             // These 200 level states handle driving to the backdrop
-            if (!AutonDriveToBackdropFromBackstage(setTrueForRed)) {
+            if (!AutonDriveToBackdropFromBackstageFront(setTrueForRed)) {
                 BadState();
                 return true;
             }
@@ -30,24 +29,9 @@ public class HydrAuton_Backstage extends HydrAuton {
         else if (autonState < 400) {
             // These 300 level states handle scoring backwards at the backdrop
             // this is the same for two autons
-            switch (ObjLoc) {
-                case ObjLocRedLeftSpike:
-                case ObjLocRedCenterSpike:
-                case ObjLocBlueCenterSpike:
-                case ObjLocBlueRightSpike:
-                default:
-                    if (!ScoreBack()) {
-                        BadState();
-                        autonState = 400;
-                    }
-                    break;
-                case ObjLocRedRightSpike:
-                case ObjLocBlueLeftSpike:
-                    if (!ScoreFront()) {
-                        BadState();
-                        autonState = 400;
-                    }
-                    break;
+            if (!ScoreFront()) {
+                BadState();
+                autonState = 400;
             }
         }
         else if (autonState < 500) {
@@ -59,44 +43,35 @@ public class HydrAuton_Backstage extends HydrAuton {
             switch (autonState) {
                 case 500:
                     if (!Drive.Busy()) {
-                        int flip = 1;
-                        if (setTrueForRed) {
-                            flip = -1;
-                        }
                         int dist;
                         switch (ObjLoc) {
                             case ObjLocRedLeftSpike:
                                 dist = 34;
                                 break;
                             case ObjLocBlueLeftSpike:
-                                dist = -23;
+                                dist = -22;
                                 break;
                             case ObjLocBlueCenterSpike:
+                                dist = -30;
+                                break;
                             case ObjLocRedCenterSpike:
                                 dist = 30;
                                 break;
                             case ObjLocRedRightSpike:
                             default:
-                                dist = -23;
+                                dist = 22;
                                 break;
                             case ObjLocBlueRightSpike:
-                                dist = 34;
+                                dist = -34;
                                 break;
                         }
-                        Drive.Start(0, dist * flip, 0, mHeading);
+                        Drive.Start(0, dist, 0, mHeading);
                         autonState += 1;
                     }
                     break;
                 case 501:
                     if (!Drive.Busy()) {
-                        double drive = -14;
-                        switch (ObjLoc) {
-                            case ObjLocBlueLeftSpike:
-                            case ObjLocRedRightSpike:
-                                drive = 14;
-                                break;
-                        }
-                        Drive.Start(drive, 0, 0, mHeading);
+                        Drive.Start(14, 0, 0, mHeading);
                         autonState += 1;
                     }
                     break;
@@ -127,7 +102,7 @@ public class HydrAuton_Backstage extends HydrAuton {
      * @param flipForRed is set to true if we are running a red team auton
      * @return false iff there is a problem
      */
-    protected boolean AutonDriveToBackdropFromBackstage(boolean flipForRed) {
+    protected boolean AutonDriveToBackdropFromBackstageFront(boolean flipForRed) {
         // multiply strafes and rotates by -1 based on the starting orientation
         int flip = 1;
         if (flipForRed) {
@@ -175,24 +150,25 @@ public class HydrAuton_Backstage extends HydrAuton {
                 // BLUE LEFT SPIKE
                 // RED RIGHT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(20, 9 * flip, 0, mHeading);
+                    Drive.Start(18, 8 * flip, 0, mHeading);
                     Arm.RunAction(HydraArmMovements.ArmMoveToFront);
-                    autonState = 298;
+                    autonState = 299;
                 }
                 break;
             ////////////////////////////////////////////////////////////////////////////////////////
             case 220:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(0, 10 * flip, 0, mHeading);
+                    Drive.Start(-14, 10 * flip, 0, mHeading);
                     autonState += 1;
                 }
                 break;
             case 221:
                 // CENTER SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-14, 0, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -40, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
                 break;
@@ -201,32 +177,36 @@ public class HydrAuton_Backstage extends HydrAuton {
                 // BLUE RIGHT SPIKE
                 // RED LEFT SPIKE
                 if (!Drive.Busy()) {
-                    Drive.Start(-28, 0, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
+                    Drive.Start(-26, -2 * flip, 0, mHeading);
+                    autonState = 231;
+                }
+                break;
+            case 231:
+                // BLUE RIGHT SPIKE
+                // RED LEFT SPIKE
+                if (!Drive.Busy()) {
+                    mHeading = 90 * flip;
+                    Drive.Start(0, 0, -40, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                     autonState = 299;
                 }
                 break;
             ///////////////////////////////////////////////////////////////////////////////////////
-            case 298: {
+            case 299:
                 boolean drivecomplete = !Drive.Busy();
                 boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
                 if (drivecomplete && armcomplete) {
                     autonState = 300;
                 }
-            }
-                break;
-            ///////////////////////////////////////////////////////////////////////////////////////
-            case 299: {
-                boolean drivecomplete = !Drive.Busy();
-                boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToBack);
-                if (drivecomplete && armcomplete) {
-                    autonState = 300;
-                }
-            }
                 break;
             default:
                 // something bad happened
                 return false;
+        }
+        if (autonState >= 200) {
+            // now that we are driving towards the backdrop, start looking for the AprilTag
+            // this just prints to telemetry for now
+            ObjDet.FindAprilTag(ObjLoc);
         }
         return true;
     }

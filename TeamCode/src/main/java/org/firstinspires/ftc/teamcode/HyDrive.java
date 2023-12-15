@@ -1,20 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
+import org.firstinspires.ftc.teamcode.objects.OpmodeHeading;
 import org.firstinspires.ftc.teamcode.subsystems.HydraImu;
 import org.firstinspires.ftc.teamcode.subsystems.HydraImu_navx;
 
@@ -118,7 +115,7 @@ public class HyDrive extends LinearOpMode {
     cArmMotorDB = 0.05;
     // Drive motor power level scaling [max 1]
     cDriveBoosted = 1;
-    cDriveNormal = 0.8;
+    cDriveNormal = 0.9;
     cDriveSlow = 0.5;
     // Arm motor power scaling
     cLowerArmManualMotorPwrScale = 0.6;
@@ -194,6 +191,9 @@ public class HyDrive extends LinearOpMode {
         break;
       }
     }
+    mImu.SetYawOffset(OpmodeHeading.GetOffset());
+    telemetry.addData("Auton Yaw", OpmodeHeading.GetOffset());
+    telemetry.update();
     waitForStart();
     while (opModeIsActive()) {
       // System processes
@@ -276,20 +276,24 @@ public class HyDrive extends LinearOpMode {
 
     if (gamepad2.triangle) {
       if (triangleButtonPress < 3) {
-        triangleButtonPress += 1;
+        triangleButtonPress++;
       }
     } else if (triangleButtonPress == 3) {
       allowManualArmControl = !allowManualArmControl;
-      triangleButtonPress += -1;
-    } else if (triangleButtonPress != 0) {
-      triangleButtonPress += -1;
+      triangleButtonPress = 2;
+    } else if (triangleButtonPress > 0) {
+      triangleButtonPress--;
     }
     if (allowManualArmControl) {
+      armPositionState = 0;
       if (gamepad2.cross) {
+        MotUprArm.setPower(0);
+        MotLwrArm.setPower(0);
         MotLwrArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         MotUprArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotUprArm.setTargetPosition(0);
+        MotLwrArm.setTargetPosition(0);
         allowManualArmControl = false;
-        armPositionState = 0;
       }
       upperArmPower = gamepad2.right_stick_y;
       lowerArmPower = gamepad2.left_stick_y;
@@ -320,37 +324,31 @@ public class HyDrive extends LinearOpMode {
         nextArmPosition = ArmControlSM();
         SetLwrArmPos(((Integer) JavaUtil.inListGet(cLowerArmPositions, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).intValue());
         SetUprArmPos(((Integer) JavaUtil.inListGet(cUpperArmPositions, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false)).intValue());
-        telemetry.addData("ArmPos", JavaUtil.inListGet(cArmPositionNames, JavaUtil.AtMode.FROM_START, ((nextArmPosition + 1) - 1), false));
       }
     }
     telemetry.addData("LrArm", MotLwrArm.getCurrentPosition());
     telemetry.addData("UprArm", MotUprArm.getCurrentPosition());
     telemetry.addData("Manual Arm", allowManualArmControl);
+    telemetry.addData("ArmPos", JavaUtil.inListGet(cArmPositionNames, JavaUtil.AtMode.FROM_START, ((armPositionState + 1) - 1), false));
   }
 
   /**
    * Describe this function...
    */
   private void ProcessDrive(int inArmPosition) {
-    float drive;
-    float strafe;
-    float rotate;
-    YawPitchRollAngles imuMeas;
-    double heading;
+    double drive;
+    double strafe;
+    double rotate;
     double rotX;
     double rotY;
     double driveMaxPower;
-    float sum;
-    float max;
+    double sum;
+    double max;
     double frontLeftPower;
     double rearLeftPower;
     double frontRightPower;
     double rearRightPower;
-
-    // Get driver controller input
-    drive = gamepad1.left_stick_y;
-    strafe = -gamepad1.left_stick_x;
-    rotate = -gamepad1.right_stick_x;
+    // get the yaw input from the gyro
     double yaw = 0;
     if (!mImu.Connected()) {
       telemetry.addData("Yaw", "disconnected");
@@ -361,6 +359,32 @@ public class HyDrive extends LinearOpMode {
     else {
       yaw = mImu.GetYaw();
       telemetry.addData("Yaw", yaw);
+    }
+    // Get driver controller input
+    drive = gamepad1.left_stick_y;
+    strafe = -gamepad1.left_stick_x * 1.1;
+    if (gamepad1.cross && cFieldCentric) {
+      // snap to the nearest 90 deg
+      double snapHeading = yaw;
+      if (yaw >= -180 && yaw <= -135) {
+        snapHeading = -180;
+      }
+      else if (yaw > -135 && yaw <= -45) {
+        snapHeading = -90;
+      }
+      else if (yaw > -45 && yaw <= 45) {
+        snapHeading = 0;
+      }
+      else if (yaw > 45 && yaw <= 135) {
+        snapHeading = 90;
+      }
+      else if (yaw > 135 && yaw <= 180) {
+        snapHeading = 180;
+      }
+      rotate = -Math.sin((yaw - snapHeading) * Math.PI / 180) * 1.1;
+    }
+    else {
+      rotate = -gamepad1.right_stick_x;
     }
     rotX = strafe * Math.cos(-yaw / 180 * Math.PI) - drive * Math.sin(-yaw / 180 * Math.PI);
     rotY = strafe * Math.sin(-yaw / 180 * Math.PI) + drive * Math.cos(-yaw / 180 * Math.PI);

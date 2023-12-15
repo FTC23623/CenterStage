@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.datalogger.HydraObjDetDatalogger;
 import org.firstinspires.ftc.teamcode.objects.HydraOpMode;
+import org.firstinspires.ftc.teamcode.objects.OpmodeHeading;
 import org.firstinspires.ftc.teamcode.subsystems.HydraArm;
 import org.firstinspires.ftc.teamcode.subsystems.HydraDrive;
 import org.firstinspires.ftc.teamcode.subsystems.HydraIntake;
@@ -38,7 +39,7 @@ public class HydrAuton extends LinearOpMode {
     protected HydraOpMode mOp;
     protected MultipleTelemetry dashboard;
     protected final int cMaxObjectSearchTimeMs = 200;
-    protected final int cPixelDropRunTimeMs = 2000;
+    protected final int cPixelDropRunTimeMs = 2500;
     protected final int cPixelFrontScoreRunTimeMs = 2000;
     protected final int cAutonAbortTimeMs = 27000;
     protected double mHeading = 0;
@@ -175,6 +176,7 @@ public class HydrAuton extends LinearOpMode {
             // Share the CPU.
             sleep(20);
         }
+        OpmodeHeading.SetOffset(Drive.GetYaw());
         // turn off the gyro
         Drive.CloseImu();
         // wait for the opmode to time out
@@ -298,264 +300,6 @@ public class HydrAuton extends LinearOpMode {
     }
 
     /**
-     * Drive the robot to the backdrop from the wing based on which spike we delivered at [ObjLoc]
-     * This function is used for both wing or audience side auton op modes
-     * @param flipWhenRed is set to true if we are running a red team auton
-     * @return false iff there is a problem
-     */
-    protected boolean AutonDriveToBackdropFromWing(boolean flipWhenRed, boolean parkOnly) {
-        // multiply strafes and rotates by -1 based on the starting orientation
-        int flip = 1;
-        if (flipWhenRed) {
-            flip = -1;
-        }
-        switch (autonState) {
-            case 200:
-                switch (ObjLoc) {
-                    // jump to the correct state based on the detected location
-                    case ObjLocBlueLeftSpike:
-                    case ObjLocRedRightSpike:
-                        autonState = 230;
-                        break;
-                    case ObjLocBlueRightSpike:
-                    case ObjLocRedLeftSpike:
-                        autonState = 210;
-                        break;
-                    case ObjLocBlueCenterSpike:
-                    case ObjLocRedCenterSpike:
-                        autonState = 220;
-                        break;
-                    default:
-                        return false;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 210:
-                // BLUE RIGHT
-                // RED LEFT
-                Drive.Start(0, -12 * flip, 0, mHeading);
-                autonState += 1;
-                break;
-            case 211:
-                // BLUE RIGHT
-                // RED LEFT
-                if (!Drive.Busy()) {
-                    Drive.Start(33, 0, 0, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 212:
-                // BLUE RIGHT
-                // RED LEFT
-                if (!Drive.Busy()) {
-                    mHeading = 90 * flip;
-                    Drive.Start(0, 0, -20 * flip, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 213:
-                // BLUE RIGHT
-                // RED LEFT
-                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
-                    if (parkOnly) {
-                        Drive.Start(86, 0, 0, mHeading);
-                        autonState = 299;
-                    }
-                    else {
-                        Drive.Start(73, 0, 0, mHeading);
-                        autonState += 1;
-                    }
-                }
-                break;
-            case 214:
-                // BLUE RIGHT
-                // RED LEFT
-                if (!Drive.Busy()) {
-                    Drive.Start(0, -24 * flip, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
-                    autonState = 299;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 220:
-                // CENTER
-                if (!Drive.Busy()) {
-                    Drive.Start(0, 18 * flip, 0, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 221:
-                // CENTER
-                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
-                    if (parkOnly) {
-                        Drive.Start(103, 0, 0, mHeading);
-                        autonState = 299;
-                    }
-                    else {
-                        Drive.Start(90, 0, 0, mHeading);
-                        autonState += 1;
-                    }
-                }
-                break;
-            case 222:
-                // CENTER
-                if (!Drive.Busy()) {
-                    Drive.Start(0, -27 * flip, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
-                    autonState = 299;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 230:
-                // BLUE LEFT
-                // RED RIGHT
-                if (!Drive.Busy()) {
-                    Drive.Start(0, 22 * flip, 0, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 231:
-                // BLUE LEFT
-                // RED RIGHT
-                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
-                    if (parkOnly) {
-                        Drive.Start(89, 0, 0, mHeading);
-                        autonState = 299;
-                    }
-                    else {
-                        Drive.Start(76, 0, 0, mHeading);
-                        autonState += 1;
-                    }
-                }
-                break;
-            case 232:
-                // BLUE LEFT
-                // RED RIGHT
-                if (!Drive.Busy()) {
-                    Drive.Start(0, -29 * flip, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToFront);
-                    autonState = 299;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 299:
-                boolean drivecomplete = !Drive.Busy();
-                boolean armcomplete = true;
-                if (!parkOnly) {
-                    armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToFront);
-                }
-                if (drivecomplete && armcomplete) {
-                    autonState = 300;
-                }
-                break;
-            default:
-                // something bad happened
-                return false;
-        }
-        return true;
-    }
-
-    /**
-     * Drive the robot to the backdrop from the backstage based on which spike we delivered at [ObjLoc]
-     * This function is used for both backstage side auton op modes
-     * @param flipForRed is set to true if we are running a red team auton
-     * @return false iff there is a problem
-     */
-    protected boolean AutonDriveToBackdropFromBackstage(boolean flipForRed) {
-        // multiply strafes and rotates by -1 based on the starting orientation
-        int flip = 1;
-        if (flipForRed) {
-            flip = -1;
-        }
-        switch (autonState) {
-            case 200:
-                // jump to the correct state based on which spike we are at
-                switch (ObjLoc) {
-                    case ObjLocBlueLeftSpike:
-                    case ObjLocRedRightSpike:
-                        autonState = 210;
-                        break;
-                    case ObjLocBlueCenterSpike:
-                    case ObjLocRedCenterSpike:
-                        autonState = 220;
-                        break;
-                    case ObjLocBlueRightSpike:
-                    case ObjLocRedLeftSpike:
-                        autonState = 230;
-                        break;
-                    default:
-                        return false;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 210:
-                // BLUE LEFT SPIKE
-                // RED RIGHT SPIKE
-                if (!Drive.Busy()) {
-                    Drive.Start(-4, 0, 0, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 211:
-                // BLUE LEFT SPIKE
-                // RED RIGHT SPIKE
-                if (!Drive.Busy()) {
-                    mHeading = -90 * flip;
-                    Drive.Start(0, 0, 20 * flip, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 212:
-                // BLUE LEFT SPIKE
-                // RED RIGHT SPIKE
-                if (!Drive.Busy()) {
-                    Drive.Start(-20, -10 * flip, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
-                    autonState = 299;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 220:
-                // CENTER SPIKE
-                if (!Drive.Busy()) {
-                    Drive.Start(0, 10 * flip, 0, mHeading);
-                    autonState += 1;
-                }
-                break;
-            case 221:
-                // CENTER SPIKE
-                if (!Drive.Busy()) {
-                    Drive.Start(-14, 0, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
-                    autonState = 299;
-                }
-                break;
-            ////////////////////////////////////////////////////////////////////////////////////////
-            case 230:
-                // BLUE RIGHT SPIKE
-                // RED LEFT SPIKE
-                if (!Drive.Busy()) {
-                    Drive.Start(-28, 0, 0, mHeading);
-                    Arm.RunAction(HydraArmMovements.ArmMoveToBack);
-                    autonState = 299;
-                }
-                break;
-            ///////////////////////////////////////////////////////////////////////////////////////
-            case 299:
-                boolean drivecomplete = !Drive.Busy();
-                boolean armcomplete = Arm.RunAction(HydraArmMovements.ArmMoveToBack);
-                if (drivecomplete && armcomplete) {
-                    autonState = 300;
-                }
-                break;
-            default:
-                // something bad happened
-                return false;
-        }
-        return true;
-    }
-
-    /**
      * Score a pixel on the backdrop from the back of the robot
      * @return false iff something bad happens
      */
@@ -606,7 +350,7 @@ public class HydrAuton extends LinearOpMode {
                 break;
             case 301:
                 if (!Drive.Busy()) {
-                    Drive.Start(8, 0, 0, mHeading);
+                    Drive.Start(6, 0, 0, mHeading);
                     autonState += 1;
                 }
                 break;
@@ -620,6 +364,12 @@ public class HydrAuton extends LinearOpMode {
                 break;
             case 303:
                 if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHang);
+                    autonState += 1;
+                }
+                break;
+            case 304:
+                if (Arm.RunAction(HydraArmMovements.ArmMoveToHang)) {
                     PixelPalace.Stop();
                     Drive.Start(-6, 0, 0, mHeading);
                     autonState = 399;
@@ -682,7 +432,6 @@ public class HydrAuton extends LinearOpMode {
         }
         return true;
     }
-
 
     /**
      * Bring the arm home from any position

@@ -251,6 +251,13 @@ public class HydraDrive {
         mImu.Close();
     }
 
+    public double GetYaw() {
+        if (ImuReady()) {
+            return mImu.GetYaw();
+        }
+        return 0;
+    }
+
     /**
      * Sets the power to all motors
      * @param value the power to set to the motors
