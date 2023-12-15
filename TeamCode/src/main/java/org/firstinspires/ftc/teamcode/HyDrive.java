@@ -115,7 +115,7 @@ public class HyDrive extends LinearOpMode {
     cArmMotorDB = 0.05;
     // Drive motor power level scaling [max 1]
     cDriveBoosted = 1;
-    cDriveNormal = 0.8;
+    cDriveNormal = 0.9;
     cDriveSlow = 0.5;
     // Arm motor power scaling
     cLowerArmManualMotorPwrScale = 0.6;
