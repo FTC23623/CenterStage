@@ -295,29 +295,31 @@ public class HyDrive extends LinearOpMode {
         MotLwrArm.setTargetPosition(0);
         allowManualArmControl = false;
       }
-      upperArmPower = gamepad2.right_stick_y;
-      lowerArmPower = gamepad2.left_stick_y;
-      if (Math.abs(upperArmPower) < cArmMotorDB) {
-        upperArmPower = 0;
-      }
-      if (Math.abs(lowerArmPower) < cArmMotorDB) {
-        lowerArmPower = 0;
-      }
-      if (upperArmPower != 0) {
-        MotUprArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        MotUprArm.setPower(cUpperArmManualMotorPwrScale * upperArmPower);
-      } else {
-        MotUprArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        MotUprArm.setTargetPosition(MotUprArm.getCurrentPosition());
-        MotUprArm.setPower(cUpperArmManualMotorPwrScale);
-      }
-      if (lowerArmPower != 0) {
-        MotLwrArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        MotLwrArm.setPower(cLowerArmManualMotorPwrScale * lowerArmPower);
-      } else {
-        MotLwrArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        MotLwrArm.setTargetPosition(MotLwrArm.getCurrentPosition());
-        MotLwrArm.setPower(cLowerArmManualMotorPwrScale);
+      else {
+        upperArmPower = gamepad2.right_stick_y;
+        lowerArmPower = gamepad2.left_stick_y;
+        if (Math.abs(upperArmPower) < cArmMotorDB) {
+          upperArmPower = 0;
+        }
+        if (Math.abs(lowerArmPower) < cArmMotorDB) {
+          lowerArmPower = 0;
+        }
+        if (upperArmPower != 0) {
+          MotUprArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+          MotUprArm.setPower(cUpperArmManualMotorPwrScale * upperArmPower);
+        } else {
+          MotUprArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+          MotUprArm.setTargetPosition(MotUprArm.getCurrentPosition());
+          MotUprArm.setPower(cUpperArmManualMotorPwrScale);
+        }
+        if (lowerArmPower != 0) {
+          MotLwrArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+          MotLwrArm.setPower(cLowerArmManualMotorPwrScale * lowerArmPower);
+        } else {
+          MotLwrArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+          MotLwrArm.setTargetPosition(MotLwrArm.getCurrentPosition());
+          MotLwrArm.setPower(cLowerArmManualMotorPwrScale);
+        }
       }
     } else {
       if (AllowArmChange()) {
