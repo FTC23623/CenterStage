@@ -51,13 +51,14 @@ public class HydrAuton_Backstage extends HydrAuton {
             }
         }
         else if (autonState < 500) {
-            // These 400 level states handle returning the arm home
-            // this is the same for all autons
-            ArmToHome();
+            // to speed up the auton, start the arm motion and then jump right to the drive away
+            Arm.RunAction(HydraArmMovements.ArmMoveToHome);
+            autonState = 500;
         }
         else if (autonState < 600) {
             switch (autonState) {
                 case 500:
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHome);
                     if (!Drive.Busy()) {
                         int flip = 1;
                         if (setTrueForRed) {
@@ -88,6 +89,7 @@ public class HydrAuton_Backstage extends HydrAuton {
                     }
                     break;
                 case 501:
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHome);
                     if (!Drive.Busy()) {
                         double drive = -14;
                         switch (ObjLoc) {
@@ -101,7 +103,9 @@ public class HydrAuton_Backstage extends HydrAuton {
                     }
                     break;
                 case 502:
-                    if (!Drive.Busy()) {
+                    boolean armComplete = Arm.RunAction(HydraArmMovements.ArmMoveToHome);
+                    boolean driveComplete = !Drive.Busy();
+                    if (armComplete && driveComplete) {
                         autonState = 600;
                     }
                     break;

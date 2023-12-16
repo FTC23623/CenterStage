@@ -68,20 +68,24 @@ public class HydraArm {
      * Sets the position for the lower arm motor
      * @param inLwrArmPos the desired position in motor encoder ticks
      */
-    private void SetLwrArmPos(int inLwrArmPos) {
+    private void SetLwrArmPos(int inLwrArmPos, double powerScale) {
         mMotLwrArm.setTargetPosition(inLwrArmPos);
         mMotLwrArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        mMotLwrArm.setPower(cLowerArmAutoMotorPwr);
+        mMotLwrArm.setPower(Math.min(cLowerArmAutoMotorPwr * powerScale, 1));
     }
 
     /**
      * Sets the position for the upper arm motor
      * @param inUprArmPos the desired position in motor encoder ticks
      */
-    private void SetUprArmPos(int inUprArmPos) {
+    private void SetUprArmPos(int inUprArmPos, double powerScale) {
         mMotUprArm.setTargetPosition(inUprArmPos);
         mMotUprArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        mMotUprArm.setPower(cUpperArmAutoMotorPwr);
+        mMotUprArm.setPower(Math.min(cUpperArmAutoMotorPwr * powerScale, 1));
+    }
+
+    public boolean RunAction(HydraArmMovements action) {
+        return RunAction(action, 1);
     }
 
     /**
@@ -90,7 +94,7 @@ public class HydraArm {
      * @param action the desired action to perform
      * @return true when the current position matches the passed in action
      */
-    public boolean RunAction(HydraArmMovements action) {
+    public boolean RunAction(HydraArmMovements action, double powerScale) {
         if (Busy()) {
             return false;
         }
@@ -108,11 +112,11 @@ public class HydraArm {
                         mArmPositionState = HydraArmPositions.ArmPosition1LiftBox;
                         break;
                     case ArmPosition4FrontScore:
+                    case ArmPosition5Hang:
                     case ArmPosition8FrontFinish:
                         mArmPositionState = HydraArmPositions.ArmPosition7FrontLift2;
                         break;
                     case ArmPosition3BackScore:
-                    case ArmPosition5Hang:
                     case ArmPosition7FrontLift2:
                         mArmPositionState = HydraArmPositions.ArmPosition2LiftArm;
                         break;
@@ -242,8 +246,8 @@ public class HydraArm {
                 break;
         }
         // set the motor positions from our arrays of static values
-        SetLwrArmPos(mLowerArmPositions[mArmPositionState.ordinal()]);
-        SetUprArmPos(mUpperArmPositions[mArmPositionState.ordinal()]);
+        SetLwrArmPos(mLowerArmPositions[mArmPositionState.ordinal()], powerScale);
+        SetUprArmPos(mUpperArmPositions[mArmPositionState.ordinal()], powerScale);
         mOp.mTelemetry.addData("ArmPos", mArmPositionNames[mArmPositionState.ordinal()]);
         mOp.mTelemetry.addData("LrArm", mMotLwrArm.getCurrentPosition());
         mOp.mTelemetry.addData("UprArm", mMotUprArm.getCurrentPosition());

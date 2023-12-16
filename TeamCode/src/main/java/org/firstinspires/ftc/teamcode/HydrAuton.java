@@ -41,6 +41,8 @@ public class HydrAuton extends LinearOpMode {
     protected final int cMaxObjectSearchTimeMs = 200;
     protected final int cPixelDropRunTimeMs = 2000;
     protected final int cPixelFrontScoreRunTimeMs = 2000;
+    protected final double cPixelFrontScoreLiftTimePct = 0.85;
+    protected final double cPixelFrontScoreLiftPwrPct = 0.75;
     protected final int cAutonAbortTimeMs = 27000;
     protected double mHeading = 0;
     protected HydraDriveDatalogger mDriveLogger;
@@ -328,6 +330,13 @@ public class HydrAuton extends LinearOpMode {
                 if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
                     PixelPalace.Stop();
                     Drive.Start(4, 0, 0, mHeading);
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHome);
+                    autonState = 399;
+                }
+                break;
+            case 399:
+                Arm.RunAction(HydraArmMovements.ArmMoveToHome);
+                if (!Drive.Busy()) {
                     autonState = 400;
                 }
                 break;
@@ -363,19 +372,26 @@ public class HydrAuton extends LinearOpMode {
                 }
                 break;
             case 303:
-                if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
-                    Arm.RunAction(HydraArmMovements.ArmMoveToHang);
+                if (pixelDropTimer.milliseconds() >= (double)cPixelFrontScoreRunTimeMs * cPixelFrontScoreLiftTimePct) {
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHang, cPixelFrontScoreLiftPwrPct);
                     autonState += 1;
                 }
                 break;
             case 304:
-                if (Arm.RunAction(HydraArmMovements.ArmMoveToHang)) {
+                if (pixelDropTimer.milliseconds() >= cPixelFrontScoreRunTimeMs) {
+                    Arm.RunAction(HydraArmMovements.ArmMoveToHang, cPixelFrontScoreLiftPwrPct);
+                    autonState += 1;
+                }
+                break;
+            case 305:
+                if (Arm.RunAction(HydraArmMovements.ArmMoveToHang, cPixelFrontScoreLiftPwrPct)) {
                     PixelPalace.Stop();
                     Drive.Start(-6, 0, 0, mHeading);
                     autonState = 399;
                 }
                 break;
             case 399:
+                Arm.RunAction(HydraArmMovements.ArmMoveToHome);
                 if (!Drive.Busy()) {
                     autonState = 400;
                 }
