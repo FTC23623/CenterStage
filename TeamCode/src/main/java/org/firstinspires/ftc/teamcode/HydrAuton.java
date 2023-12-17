@@ -39,7 +39,7 @@ public class HydrAuton extends LinearOpMode {
     protected HydraOpMode mOp;
     protected MultipleTelemetry dashboard;
     protected final int cMaxObjectSearchTimeMs = 200;
-    protected final int cPixelDropRunTimeMs = 2000;
+    protected final int cPixelDropRunTimeMs = 2500;
     protected final int cPixelFrontScoreRunTimeMs = 2000;
     protected final double cPixelFrontScoreLiftTimePct = 0.85;
     protected final double cPixelFrontScoreLiftPwrPct = 0.75;

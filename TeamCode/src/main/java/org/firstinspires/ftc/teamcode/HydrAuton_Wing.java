@@ -183,7 +183,7 @@ public class HydrAuton_Wing extends HydrAuton {
             case 231:
                 // BLUE LEFT
                 // RED RIGHT
-                if (!Drive.Busy() && opModeTimer.milliseconds() >= (mWaitTimeAtRigging + 2)) {
+                if (!Drive.Busy() && opModeTimer.milliseconds() >= mWaitTimeAtRigging) {
                     if (parkOnly) {
                         Drive.Start(93, 0, 0, mHeading);
                         autonState = 299;
