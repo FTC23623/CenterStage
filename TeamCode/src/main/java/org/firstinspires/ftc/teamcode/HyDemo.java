@@ -286,6 +286,7 @@ public class HyDemo extends LinearOpMode {
     } else if (triangleButtonPress > 0) {
       triangleButtonPress--;
     }
+    allowManualArmControl=false;
     if (allowManualArmControl) {
       armPositionState = 0;
       if (gamepad1.cross) {
@@ -395,17 +396,10 @@ public class HyDemo extends LinearOpMode {
     if (gamepad1.circle && cFieldCentric) {
       mImu.ResetYaw();
     }
-    // Set max drive power based on driver input
-    if (gamepad1.left_trigger > cTrgBtnThresh || inArmPosition > 2) {
-      // Drive slower for better control
-      driveMaxPower = cDriveSlow;
-    } else if (gamepad1.right_trigger > cTrgBtnThresh) {
-      // Drive faster for fun
-      driveMaxPower = cDriveBoosted;
-    } else {
-      // Normal drive speed
+    // Set max drive power
+    // Normal drive speed
       driveMaxPower = cDriveNormal;
-    }
+
     // Scale the output power for the division we are doing later
     sum = Math.abs(drive) + Math.abs(strafe) + Math.abs(rotate);
     if (sum > 1) {
@@ -552,15 +546,16 @@ public class HyDemo extends LinearOpMode {
   private void ProcessDrone() {
     // Get the current time in milliseconds. The value returned represents
     // the number of milliseconds since midnight, January 1, 1970 UTC.
-    if (gamepad1.square && gamepad1.square) {
-      SrvDrLnch.setPosition(cDroneServoLaunch);
+    return;
+    //if (gamepad1.square && gamepad1.square) {
+     // SrvDrLnch.setPosition(cDroneServoLaunch);
       // Get the current time in milliseconds. The value returned represents
       // the number of milliseconds since midnight, January 1, 1970 UTC.
-      droneLaunchTime = System.currentTimeMillis();
-    } else if (droneLaunchTime != 0 && ((System.currentTimeMillis() - droneLaunchTime) > cDroneLaunchDuration)) {
-      droneLaunchTime = 0;
-      SrvDrLnch.setPosition(cDroneServoStop);
-    }
+      //droneLaunchTime = System.currentTimeMillis();
+    //} else if (droneLaunchTime != 0 && ((System.currentTimeMillis() - droneLaunchTime) > cDroneLaunchDuration)) {
+      //droneLaunchTime = 0;
+      //SrvDrLnch.setPosition(cDroneServoStop);
+  //  }
   }
 
   /**
@@ -595,7 +590,7 @@ public class HyDemo extends LinearOpMode {
     armMoveToHome = gamepad1.dpad_down;
     armMoveToFront = gamepad1.dpad_right;
     armMoveToBack = gamepad1.dpad_left;
-    armMoveToHang = gamepad1.dpad_up;
+    armMoveToHang = false;
     if (armMoveToHome) {
       if (armPositionState == 6) {
         armPositionState = 5;
